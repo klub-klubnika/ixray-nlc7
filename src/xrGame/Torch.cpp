@@ -182,6 +182,7 @@ bool CTorch::net_Spawn(CSE_Abstract* DC)
 
 		Fcolor clr = pUserData->r_fcolor("torch_definition", (b_r2) ? "color_r2" : "color");
 		fBrightness = clr.intensity();
+		BaseColor = clr;
 		float range = pUserData->r_float("torch_definition", (b_r2) ? "range_r2" : "range");
 		light_render->set_color(clr);
 		light_render->set_range(range);
@@ -385,6 +386,71 @@ void CTorch::UpdateCL()
 	}
 
 	glow_render->set_color(fclr);
+}
+
+void CTorch::SetAnimation(const char* Name)
+{
+	lanim = LALib.FindItem(Name);
+}
+
+void CTorch::SetBrightness(float Brightness)
+{
+	fBrightness = Brightness;
+	SetColor(BaseColor, 0);
+}
+
+void CTorch::SetColor(const Fcolor& Color, int Target)
+{
+	Fcolor Scaled = Color;
+	Scaled.mul_rgb(fBrightness / 255.0f);
+
+	switch (Target)
+	{
+	case 0:
+		BaseColor = Color;
+		light_render->set_color(Scaled);
+		break;
+	case 1:
+		light_omni->set_color(Scaled);
+		break;
+	case 2:
+		glow_render->set_color(Scaled);
+		break;
+	}
+}
+
+void CTorch::SetRGB(float R, float G, float B, int Target)
+{
+	SetColor(Fcolor().set(R, G, B, 1.0f), Target);
+}
+
+void CTorch::SetAngle(float Angle, int Target)
+{
+	switch (Target)
+	{
+	case 0:
+		light_render->set_cone(Angle);
+		break;
+	case 1:
+		light_omni->set_cone(Angle);
+		break;
+	}
+}
+
+void CTorch::SetRange(float Range, int Target)
+{
+	switch (Target)
+	{
+	case 0:
+		light_render->set_range(Range);
+		break;
+	case 1:
+		light_omni->set_range(Range);
+		break;
+	case 2:
+		glow_render->set_radius(Range);
+		break;
+	}
 }
 
 void CTorch::create_physic_shell()

@@ -13,6 +13,7 @@ class CTorch final : public CInventoryItemObject, public IPowerManager
 
 protected:
 	float fBrightness = 1.0f;
+	Fcolor BaseColor = {};
 	CLAItem* lanim = nullptr;
 
 	u16 guid_bone = BI_NONE;
@@ -57,6 +58,14 @@ public:
 	virtual bool can_be_attached() const override;
 
 	bool IsSwitched() const { return m_switched_on; }
+
+	// Script light control. Target: 0 - spot light, 1 - omni light, 2 - glow
+	void SetAnimation(const char* Name);
+	void SetBrightness(float Brightness);
+	void SetColor(const Fcolor& Color, int Target);
+	void SetRGB(float R, float G, float B, int Target);
+	void SetAngle(float Angle, int Target);
+	void SetRange(float Range, int Target);
 
 	//CAttachableItem
 	virtual void enable(bool value) override;
