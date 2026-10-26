@@ -2095,6 +2095,23 @@ void CScriptGameObject::SetActorPower(float value)
 	}
 }
 
+float CScriptGameObject::GetMaxPower() const
+{
+	if (const CEntityAlive* EntityAlive = smart_cast<const CEntityAlive*>(&object()))
+	{
+		return EntityAlive->conditions().GetMaxPower();
+	}
+	return 0.0f;
+}
+
+void CScriptGameObject::SetMaxPower(float value)
+{
+	if (CEntityAlive* EntityAlive = smart_cast<CEntityAlive*>(&object()))
+	{
+		EntityAlive->conditions().SetMaxPower(value);
+	}
+}
+
 // FFx0001 ++
 void CScriptGameObject::SetActorRadiation(float value)
 {

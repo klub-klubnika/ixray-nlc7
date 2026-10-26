@@ -508,6 +508,8 @@ public:
 			void				SetActorThirst(const float value);
 			void				SetActorHealth(const float value);
 			void				SetActorPower(const float value);
+			float				GetMaxPower() const;
+			void				SetMaxPower(float value);
 			void				SetActorRadiation(const float value);
 			void				SetActorPsyHealth(const float value);
 			void				SetActorMorale(const float value);

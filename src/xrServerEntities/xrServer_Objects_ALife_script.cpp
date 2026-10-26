@@ -10,8 +10,18 @@
 #include "pch_script.h"
 #include "xrServer_Objects_ALife.h"
 #include "xrServer_script_macroses.h"
+#include "xrServer_Objects_ALife_Monsters.h"
 
 using namespace luabind;
+
+namespace ServerObjectScriptCompat
+{
+	bool IsAlive(CSE_ALifeObject* Object)
+	{
+		CSE_ALifeCreatureAbstract* Creature = smart_cast<CSE_ALifeCreatureAbstract*>(Object);
+		return Creature != nullptr && Creature->g_Alive();
+	}
+}
 
 #pragma optimize("s",on)
 void CSE_ALifeSchedulable::script_register(lua_State *L)
@@ -57,6 +67,7 @@ void CSE_ALifeObject::script_register(lua_State *L)
 		.def_readwrite	("m_level_vertex_id",	&CSE_ALifeObject::m_tNodeID)
 		.def_readwrite	("m_game_vertex_id",	&CSE_ALifeObject::m_tGraphID)
 		.def_readwrite	("m_story_id",			&CSE_ALifeObject::m_story_id)
+		.property		("is_alive",			&ServerObjectScriptCompat::IsAlive)
 	];
 }
 

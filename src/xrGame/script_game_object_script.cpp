@@ -103,6 +103,25 @@ namespace ScriptActorConditions
 
 extern CScriptActionPlanner *script_action_planner(CScriptGameObject *obj);
 
+namespace ScriptAnimationCompat
+{
+	void AddAnimation(CScriptGameObject* Object, const char* Animation)
+	{
+		Object->add_animation(Animation, true, false);
+	}
+
+	void AddAnimationHands(CScriptGameObject* Object, const char* Animation, bool HandUsage)
+	{
+		Object->add_animation(Animation, HandUsage, false);
+	}
+
+	bool IsAlive(CScriptGameObject* Object)
+	{
+		CEntityAlive* Entity = smart_cast<CEntityAlive*>(&Object->object());
+		return Entity != nullptr && !!Entity->g_Alive();
+	}
+}
+
 void IterateActiveItem(CScriptGameObject* Owner, luabind::object func, luabind::object context)
 {
 	if (Actor()->inventory().GetActiveSlot() != NO_ACTIVE_SLOT)
@@ -194,6 +213,7 @@ void CScriptGameObject::script_register(lua_State *L)
 			.property("health",					&CScriptGameObject::GetHealth,			&CScriptGameObject::SetHealth)
 			.property("psy_health",				&CScriptGameObject::GetPsyHealth,		&CScriptGameObject::SetPsyHealth)
 			.property("power",					&CScriptGameObject::GetPower,			&CScriptGameObject::SetPower)
+			.property("max_power",				&CScriptGameObject::GetMaxPower,		&CScriptGameObject::SetMaxPower)
 			.property("satiety",				&CScriptGameObject::GetSatiety,			&CScriptGameObject::ChangeSatiety)
 			.property("radiation",				&CScriptGameObject::GetRadiation,		&CScriptGameObject::SetRadiation)
 			.property("morale",					&CScriptGameObject::GetMorale,			&CScriptGameObject::SetMorale)
@@ -222,6 +242,7 @@ void CScriptGameObject::script_register(lua_State *L)
 			.def("max_health",					&CScriptGameObject::MaxHealth)
 			.def("accuracy",					&CScriptGameObject::Accuracy)
 			.def("alive",						&CScriptGameObject::Alive)
+			.property("is_alive",				&ScriptAnimationCompat::IsAlive)
 			.def("team",						&CScriptGameObject::Team)
 			.def("squad",						&CScriptGameObject::Squad)
 			.def("group",						&CScriptGameObject::Group)
@@ -434,6 +455,8 @@ void CScriptGameObject::script_register(lua_State *L)
 			.def("game_vertex_id",				&CScriptGameObject::game_vertex_id)
 			.def("add_animation",				(void (CScriptGameObject::*)(const char*, bool, bool))(&CScriptGameObject::add_animation))
 			.def("add_animation",				(void (CScriptGameObject::*)(const char*, bool, Fvector, Fvector, bool))(&CScriptGameObject::add_animation))
+			.def("add_animation",				&ScriptAnimationCompat::AddAnimation)
+			.def("add_animation",				&ScriptAnimationCompat::AddAnimationHands)
 			.def("clear_animations",			&CScriptGameObject::clear_animations)
 			.def("animation_count",				&CScriptGameObject::animation_count)
 			.def("animation_slot",				&CScriptGameObject::animation_slot)
