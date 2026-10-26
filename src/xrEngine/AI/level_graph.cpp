@@ -99,7 +99,7 @@ bool ILevelGraph::Search(u32 start_vertex_id, u32 dest_vertex_id, xr_vector<u32>
 	{
 		float x, z;
 		unpack_xz(vertex(id), x, z);
-		return Cell * 2.f * (fabsf(x - tx) + fabsf(z - tz));
+		return 2.f * (fabsf(x - tx) + fabsf(z - tz));
 	};
 
 	PriorityQueue.push({0.f, start_vertex_id});
