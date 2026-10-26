@@ -19,7 +19,7 @@ IC intptr_t IReaderBase::find_chunk(u32 ID, bool* bCompressed)
 
 	bool success = false;
 
-	if ( m_last_pos != 0 )
+	if ( m_last_pos != 0 && m_last_pos + intptr_t(2 * sizeof(u32)) <= length() )
 	{
 		seek(m_last_pos);
 		dwType = r_u32();
@@ -34,7 +34,8 @@ IC intptr_t IReaderBase::find_chunk(u32 ID, bool* bCompressed)
 	if ( !success )
 	{
 		rewind();
-		while ( !eof() ) 
+		// Some third-party files end with padding or a truncated chunk; stop at a header or body that does not fit
+		while ( elapsed() >= intptr_t(2 * sizeof(u32)) )
 		{
 			dwType = r_u32();
 			dwSize = r_u32();
@@ -43,7 +44,11 @@ IC intptr_t IReaderBase::find_chunk(u32 ID, bool* bCompressed)
 				success = true;
 				break;
 			}
-			else 
+			else if ( dwSize > elapsed() )
+			{
+				break;
+			}
+			else
 			{
 				advance(dwSize);
 			}
