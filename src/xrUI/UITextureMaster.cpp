@@ -15,6 +15,16 @@
 #include "uiabstract.h"
 #include "xrUIXmlParser.h"
 
+namespace
+{
+	bool TextureFileExists(const shared_str& TextureName)
+	{
+		string_path Path;
+		return FS.exist(Path, _game_textures_, TextureName.c_str()) || FS.exist(Path, _game_textures_, TextureName.c_str(), ".dds") ||
+			FS.exist(Path, _game_textures_, TextureName.c_str(), ".seq") || FS.exist(Path, _game_textures_, TextureName.c_str(), ".ogm");
+	}
+}
+
 xr_map<shared_str, TEX_INFO>	CUITextureMaster::m_textures;
 xr_map<sh_pair, ui_shader>		CUITextureMaster::m_shaders;
 
@@ -107,8 +117,7 @@ bool CUITextureMaster::InitTexture(const shared_str& texture_name, const shared_
 		return true;
 	}
 	// Step 2 - if texture is not in XML, try to load existing file
-	string_path tmp;
-	bool texExist = FS.exist(tmp, _game_textures_, texture_name.c_str());
+	bool texExist = TextureFileExists(texture_name);
 	if (texExist || warn_about_missing_tex)
 	{
 		out_shader = CreateTextureShader(texture_name, shader_name);
@@ -132,8 +141,7 @@ bool CUITextureMaster::InitTexture(const shared_str& texture_name, CUIStaticItem
 		return true;
 	}
 	// Step 2 - if texture is not in XML, try to load existing file
-	string_path tmp;
-	bool texExist = FS.exist(tmp, _game_textures_, texture_name.c_str());
+	bool texExist = TextureFileExists(texture_name);
 	if (texExist || warn_about_missing_tex)
 	{
 		tc->SetShader(CreateTextureShader(texture_name, shader_name));
@@ -142,6 +150,7 @@ bool CUITextureMaster::InitTexture(const shared_str& texture_name, CUIStaticItem
 	{
 		tc->SetShader(CreateTextureShader("ed\\ed_not_existing_texture", shader_name));
 	}
+	tc->ResetOriginalRect();
 
 	return false;
 }
