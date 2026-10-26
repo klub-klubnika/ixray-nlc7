@@ -136,12 +136,14 @@ void CUIActorMenuBase::InitSlots(CUIXml& uiXml)
 		if (uiXml.GetNodesNum(slot_node, "slot_dragdrop") == 0)
 			continue;
 
-		if (i == OUTFIT_SLOT && uiXml.ReadAttribBool("slot_dragdrop", 0, "use_full_scale_icon", false))
+		const bool useFullIcon2D = i == OUTFIT_SLOT && uiXml.ReadAttribBool("slot_dragdrop", 0, "full_scale_icon_2d", false);
+		if (i == OUTFIT_SLOT && (useFullIcon2D || uiXml.ReadAttribBool("slot_dragdrop", 0, "use_full_scale_icon", false)))
 		{
 			m_pInvList[i] = new CUIOutfitDragDropList();
 			if (CUIOutfitDragDropList* outfitSlot = m_pInvList[OUTFIT_SLOT]->ui_cast_outfit_dragdrop_list())
 			{
 				outfitSlot->SetVisualAnimation(uiXml.ReadAttrib("slot_dragdrop", 0, "full_scale_animation", "$editor"));
+				outfitSlot->SetUseFullIcon2D(useFullIcon2D);
 			}
 		}
 		else

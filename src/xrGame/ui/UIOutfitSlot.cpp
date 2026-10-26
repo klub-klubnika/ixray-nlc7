@@ -11,6 +11,10 @@ CUIOutfitDragDropList::CUIOutfitDragDropList()
 	m_background				= new CUI3dStatic();
 	m_background->SetAutoDelete	(true);
 	AttachChild					(m_background);
+
+	FullIcon					= new CUIStatic();
+	FullIcon->SetAutoDelete		(true);
+	AttachChild					(FullIcon);
 }
 
 CUIOutfitDragDropList::~CUIOutfitDragDropList()
@@ -19,8 +23,37 @@ CUIOutfitDragDropList::~CUIOutfitDragDropList()
 
 #include "../Level.h"
 
+void CUIOutfitDragDropList::SetUseFullIcon2D(bool value)
+{
+	UseFullIcon2D = value;
+}
+
+void CUIOutfitDragDropList::SetOutfit2D(CUICellItem* itm)
+{
+	FullIcon->SetWndPos(Fvector2().set(0, 0));
+	FullIcon->SetWndSize(Fvector2().set(GetWidth(), GetHeight()));
+	FullIcon->SetStretchTexture(true);
+
+	PIItem item = itm != nullptr ? static_cast<PIItem>(itm->m_pData) : nullptr;
+	CCustomOutfit* outfit = item != nullptr ? item->cast_outfit() : nullptr;
+	if (outfit != nullptr && outfit->GetFullIconName().size() != 0)
+	{
+		FullIcon->InitTexture(outfit->GetFullIconName().c_str(), false);
+	}
+	else
+	{
+		FullIcon->InitTexture("npc_icon_without_outfit", false);
+	}
+}
+
 void CUIOutfitDragDropList::SetOutfit(CUICellItem* itm)
 {
+	if (UseFullIcon2D)
+	{
+		SetOutfit2D(itm);
+		return;
+	}
+
 	m_background->SetWndPos(Fvector2().set(0, 0));
 	m_background->SetWndSize(Fvector2().set(GetWidth(), GetHeight()));
 
@@ -87,6 +120,12 @@ CUICellItem* CUIOutfitDragDropList::RemoveItem(CUICellItem* itm, bool force_root
 
 void CUIOutfitDragDropList::Draw()
 {
+	if (UseFullIcon2D)
+	{
+		FullIcon->Draw();
+		return;
+	}
+
 	m_background->Draw					();
 //.	inherited::Draw						();
 }
