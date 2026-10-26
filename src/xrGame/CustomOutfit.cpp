@@ -14,6 +14,19 @@
 #include "UIGameCustom.h"
 #include "UIActorMenu.h"
 
+namespace OutfitDescription
+{
+	void ReplaceAll(xr_string& Text, const char* From, const char* To)
+	{
+		const size_t FromLength = xr_strlen(From);
+		const size_t ToLength = xr_strlen(To);
+		for (size_t Pos = Text.find(From); Pos != xr_string::npos; Pos = Text.find(From, Pos + ToLength))
+		{
+			Text.replace(Pos, FromLength, To);
+		}
+	}
+}
+
 void CCustomOutfit::Load(const char* section)
 {
 	inherited::Load(section);
@@ -25,6 +38,19 @@ void CCustomOutfit::Load(const char* section)
 	m_additional_weight2 = pSettings->r_float(section, "additional_inventory_weight2");
 
 	m_artefact_count = pSettings->read_if_exists<u32>(section, "artefact_count", 0);
+
+	// NLC descriptions: protection stats ($outfit_general_info) are shown by the outfit info window, $carrying is the extra carry weight
+	if (strchr(m_Description.c_str(), '$'))
+	{
+		xr_string Description = m_Description.c_str();
+		OutfitDescription::ReplaceAll(Description, "$outfit_general_info ", "");
+		OutfitDescription::ReplaceAll(Description, "$outfit_general_info", "");
+		string32 Carrying;
+		xr_sprintf(Carrying, "%.0f", m_additional_weight);
+		OutfitDescription::ReplaceAll(Description, "$carrying", Carrying);
+		m_Description = Description.c_str();
+		BuildDescription();
+	}
 }
 
 void CCustomOutfit::OnMoveToSlot(const SInvItemPlace& prev)
