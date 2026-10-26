@@ -14,6 +14,8 @@ class UILoadingScreen final :
     CUIStatic* loadingProgressBackground;
     CUILoadingScreenProgress* loadingProgress;
     CUIStatic* loadingLogo;
+    // Texture rect from xml, kept when the logo texture is replaced
+    Frect LogoTextureRect = {};
     CUIStatic* loadingProgressPercent;
 
     CUIStatic* loadingStage;

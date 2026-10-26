@@ -55,6 +55,12 @@ public:
 	virtual void load_draw_internal();
 	void SetLoadingScreen(ILoadingScreen* newScreen);
 	virtual void DestroyLoadingScreen();
+
+	// Script-chosen loading picture; applied at once when the loading screen is up
+	void SetScriptLoadTexture(const char* Texture);
+
+private:
+	shared_str ScriptLoadTexture;
 };
 
 extern ENGINE_API CEngineApp* pApp;

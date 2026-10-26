@@ -1027,6 +1027,18 @@ void CGamePersistent::LoadTitle(bool change_tip, shared_str map_name)
 		u8						tip_num;
 		luabind::functor<u8>	m_functor;
 		bool is_single = !xr_strcmp(m_game_params.m_game_type,"single");
+
+		// Optional ready-made tip text from scripts (mods with their own hint lists)
+		luabind::functor<const char*> TipTextFunctor;
+		if (is_single && ai().script_engine().functor("loadscreen.get_tip_text", TipTextFunctor))
+		{
+			const char* TipText = TipTextFunctor(map_name.c_str());
+			if (TipText != nullptr && TipText[0] != '\0')
+			{
+				pApp->LoadTitleInt("", "", g_pStringTable->translate(TipText).c_str());
+				return;
+			}
+		}
 		if(is_single)
 		{
 			R_ASSERT( ai().script_engine().functor( "loadscreen.get_tip_number", m_functor ) );

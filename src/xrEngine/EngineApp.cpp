@@ -191,6 +191,15 @@ void CEngineApp::SetLoadingScreen(ILoadingScreen* newScreen) {
 
 void CEngineApp::DestroyLoadingScreen() { xr_delete(GLoadingScreen); }
 
+void CEngineApp::SetScriptLoadTexture(const char* Texture)
+{
+	ScriptLoadTexture = Texture;
+	if (GLoadingScreen != nullptr && ScriptLoadTexture.size())
+	{
+		GLoadingScreen->SetLevelLogo(ScriptLoadTexture.c_str());
+	}
+}
+
 void CEngineApp::LoadDraw()
 {
 	if (g_appLoaded)				return;
@@ -355,8 +364,9 @@ void CEngineApp::Level_Set(u32 L)
 		}
 	}
 
-	if (path[0] && GLoadingScreen)
-		GLoadingScreen->SetLevelLogo(path);
+	const char* Logo = ScriptLoadTexture.size() ? ScriptLoadTexture.c_str() : path;
+	if (Logo[0] && GLoadingScreen)
+		GLoadingScreen->SetLevelLogo(Logo);
 }
 
 int CEngineApp::Level_ID(const char* name, const char* ver, bool bSet)

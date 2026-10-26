@@ -44,6 +44,10 @@ void UILoadingScreen::Initialize()
     }
 
     loadingLogo = UIHelper::CreateStatic(uiXml, "loading_logo", this);
+    if (uiXml.NavigateToNode("loading_logo:texture", 0) && uiXml.ReadAttribFlt("loading_logo:texture", 0, "width", 0.0f) > 0.0f)
+    {
+        LogoTextureRect = loadingLogo->GetTextureRect();
+    }
 
     if (uiXml.NavigateToNode("loading_progress_percent", 0))
         loadingProgressPercent = UIHelper::CreateStatic(uiXml, "loading_progress_percent", this);
@@ -75,7 +79,11 @@ void UILoadingScreen::ForceFinish()
 
 void UILoadingScreen::SetLevelLogo(const char* name) const 
 { 
-    loadingLogo->InitTexture(name); 
+    loadingLogo->InitTexture(name);
+    if (LogoTextureRect.width() > 0.0f)
+    {
+        loadingLogo->SetTextureRect(LogoTextureRect);
+    }
 }
 
 void UILoadingScreen::SetStageTitle(const char* title) const 
