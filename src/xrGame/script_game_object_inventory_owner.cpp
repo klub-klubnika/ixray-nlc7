@@ -331,7 +331,7 @@ void CScriptGameObject::IterateInventory(luabind::functor<bool> functor, luabind
 	{
 		for (PIItem item : inventory_owner->inventory().m_all)
 		{
-			if (functor(object, item->object().lua_game_object()) == true)
+			if (functor(object, item->object().lua_game_object()) == true && !EngineExternal().ShadowOfChernobylMode())
 			{
 				return;
 			}
