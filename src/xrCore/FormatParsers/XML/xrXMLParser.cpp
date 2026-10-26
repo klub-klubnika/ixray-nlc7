@@ -42,7 +42,23 @@ void CXml::ClearInternal()
 	m_Doc.Clear();
 }
 
-void ParseFile(const char* path, CMemoryWriter& W, IReader *F, CXml* xml )
+static bool IsXmlDeclaration(const char* Line)
+{
+	while (*Line == ' ' || *Line == '\t')
+	{
+		++Line;
+	}
+
+	// Skip a UTF-8 BOM before the declaration
+	if (Line[0] == '\xEF' && Line[1] == '\xBB' && Line[2] == '\xBF')
+	{
+		Line += 3;
+	}
+
+	return strncmp(Line, "<?xml", 5) == 0;
+}
+
+void ParseFile(const char* path, CMemoryWriter& W, IReader *F, CXml* xml, bool IsInclude = false)
 {
 	string4096 str = {};
 
@@ -81,7 +97,7 @@ void ParseFile(const char* path, CMemoryWriter& W, IReader *F, CXml* xml )
 								R_ASSERT2(false, str);
 							}
 
-							ParseFile(path, W, I, xml);
+							ParseFile(path, W, I, xml, true);
 							FS.r_close(I);
 						}
 						else
@@ -96,7 +112,7 @@ void ParseFile(const char* path, CMemoryWriter& W, IReader *F, CXml* xml )
 								R_ASSERT2(false, str);
 							}
 
-							ParseFile(path, W, I, xml);
+							ParseFile(path, W, I, xml, true);
 							FS.r_close(I);
 						}
 					}
@@ -121,10 +137,15 @@ void ParseFile(const char* path, CMemoryWriter& W, IReader *F, CXml* xml )
 						xr_sprintf(str_, "XML file[%s] parsing failed. Can't find include file:[%s]", path, inc_name);
 						R_ASSERT2(false, str_);
 					}
-					ParseFile(path, W, I, xml);
+					ParseFile(path, W, I, xml, true);
 					FS.r_close(I);
 				}
 			}
+		}
+		else if (IsInclude && IsXmlDeclaration(str))
+		{
+			// Included files keep their own declaration; it is only valid at the start of the merged document
+			continue;
 		}
 		else
 		{
