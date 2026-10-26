@@ -166,6 +166,12 @@ void CActor::g_cl_ValidateMState(float dt, u32 mstate_wf)
 	}
 };
 
+float CActor::OverWeightFactor()
+{
+	const float BodyMass = GetMass();
+	return (BodyMass + inventory().TotalWeight()) / std::max(BodyMass + MaxCarryWeight(), EPS);
+}
+
 void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Jump, float dt)
 {
 	mstate_old				= mstate_real;
@@ -255,9 +261,22 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 			}
 			const float jump_modifier = GetArtefactJumpHeightModifier();
 			Jump = m_fJumpSpeed * (1.0f + jump_modifier);
+			if (WeightAffectsMovement)
+			{
+				float PowerFactor = std::clamp(conditions().GetPower() / OverWeightFactor(), 0.3f, 3.0f);
+				if (PowerFactor > 2.0f)
+				{
+					PowerFactor = std::log2(PowerFactor) + 1.0f;
+				}
+				Jump *= PowerFactor;
+			}
 			if (Jump < 0.0f)
 			{
 				Jump = 0.0f;
+			}
+			if (WeightAffectsMovement)
+			{
+				character_physics_support()->movement()->SetJumpUpVelocity(Jump);
 			}
 			m_fJumpTime			= s_fJumpTime;
 
@@ -330,6 +349,10 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 					walkAccel = 0.0f;
 				}
 				scale = walkAccel / scale;
+				if (WeightAffectsMovement)
+				{
+					scale /= std::clamp(OverWeightFactor(), 0.85f, 3.0f);
+				}
 
 				if (bAccelerated)
 					if (mstate_real&mcBack)

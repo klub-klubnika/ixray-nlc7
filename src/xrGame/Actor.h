@@ -620,6 +620,8 @@ public:
 
 	float					m_fWalkAccel;
 	float					m_fJumpSpeed;
+	bool					WeightAffectsMovement = false;
+	float					OverWeightFactor();
 	float					m_fRunFactor;
 	float					m_fRunBackFactor;
 	float					m_fWalkBackFactor;
