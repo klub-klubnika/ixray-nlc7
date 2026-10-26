@@ -433,9 +433,8 @@ void CEngineApp::LoadAllArchives()
 void CEngineApp::load_draw_internal()
 {
 	Device.m_pRender->SetupDefaultTarget();
+	Device.m_pRender->ClearTarget();
 
 	if (GLoadingScreen)
 		GLoadingScreen->Update(load_stage, max_load_stage);
-	else
-		Device.m_pRender->ClearTarget();
 }

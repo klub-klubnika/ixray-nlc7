@@ -457,6 +457,7 @@ void CRender::Render()
 		if (bMenu)
 		{
 			Target->u_setrt((u32)RCache.get_target_width(), (u32)RCache.get_target_height(), RImplementation.Target->rt_BackbufferLUT->pRT, nullptr, nullptr, nullptr);
+			GRHI->ClearTarget(RImplementation.Target->rt_BackbufferLUT->pRT, ERTColor::Black);
 			return;
 		}
 	}
