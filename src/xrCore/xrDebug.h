@@ -27,6 +27,8 @@ private:
 public:
 	using SendErrorPrototype = void(const char*);
 	SendErrorPrototype* SendErrorCallback = nullptr;
+	using AssertPrototype = void();
+	AssertPrototype* FirstAssertCallback = nullptr;
 	bool SilentErrorMode = false;
 
 public:

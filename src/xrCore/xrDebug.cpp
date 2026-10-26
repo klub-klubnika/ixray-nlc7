@@ -22,6 +22,7 @@ XRCORE_API xrDebug Debug;
 #endif // DEBUG
 
 static bool	error_after_dialog = false;
+static bool	g_ForceStackTrace = false;
 
 void xrDebug::gather_info		(const char *expression, const char *description, const char *argument0, const char *argument1, const char *file, int line, const char *function, LPSTR assertion_info, u32 const assertion_info_size)
 {
@@ -79,7 +80,7 @@ void xrDebug::gather_info		(const char *expression, const char *description, con
 		SendErrorCallback(assertion_info);
 	}
 
-	if (!ignore_error_window && !IsDebuggerPresent() && !strstr(GetCommandLineA(), "-no_call_stack_assert")) {
+	if ((!ignore_error_window || g_ForceStackTrace) && !IsDebuggerPresent() && !strstr(GetCommandLineA(), "-no_call_stack_assert")) {
 		if (shared_str_initialized)
 			Msg			("stack trace:\n");
 
@@ -113,7 +114,8 @@ void xrDebug::gather_info		(const char *expression, const char *description, con
 		if (shared_str_initialized)
 			xrLogger::FlushLog	();
 
-		os_clipboard::copy_to_clipboard	(assertion_info);
+		if (!ignore_error_window)
+			os_clipboard::copy_to_clipboard	(assertion_info);
 	}
 }
 
@@ -144,7 +146,22 @@ void xrDebug::backend	(const char *expression, const char *description, const ch
 
 	string4096			assertion_info;
 
+	static xr_vector<std::pair<const char*, int>> ReportedPlaces;
+	const std::pair<const char*, int> Place = { file, line };
+	const bool IsFirstReport = std::find(ReportedPlaces.begin(), ReportedPlaces.end(), Place) == ReportedPlaces.end();
+	if (IsFirstReport)
+	{
+		ReportedPlaces.push_back(Place);
+	}
+
+	g_ForceStackTrace	= IsFirstReport;
 	gather_info			(expression, description, argument0, argument1, file, line, function, assertion_info, sizeof(assertion_info) );
+	g_ForceStackTrace	= false;
+
+	if (IsFirstReport && FirstAssertCallback)
+	{
+		FirstAssertCallback();
+	}
 
 	const char*				endline = "\r\n";
 	LPSTR				buffer = assertion_info + xr_strlen(assertion_info);

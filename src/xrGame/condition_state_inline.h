@@ -18,12 +18,17 @@ IC void CWorldState::add_condition_back(const CWorldProperty& condition)
 IC void CWorldState::add_condition(const CWorldProperty& condition)
 {
 	xr_vector<CWorldProperty>::iterator	I = std::lower_bound(m_conditions.begin(), m_conditions.end(), condition);
-	THROW((I == m_conditions.end()) || ((*I).condition() != condition.condition()));
 	if ((I == m_conditions.end()) || ((*I).condition() != condition.condition()))
 	{
 		m_conditions.insert(I, condition);
 		m_hash ^= condition.hash_value();
 	}
+#ifdef DEBUG
+	else
+	{
+		Msg("! duplicate world property [%u] (kept [%d], ignored [%d])", condition.condition(), (*I).value(), condition.value());
+	}
+#endif
 }
 
 IC void CWorldState::remove_condition(const u32& condition)

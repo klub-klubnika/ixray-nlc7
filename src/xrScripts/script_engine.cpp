@@ -37,6 +37,8 @@ CScriptEngine::CScriptEngine			()
 
 CScriptEngine::~CScriptEngine			()
 {
+	Debug.FirstAssertCallback = nullptr;
+
 	while (!m_script_processes.empty())
 		remove_script_process(m_script_processes.begin()->first);
 
@@ -94,6 +96,22 @@ void lua_cast_failed(lua_State *L, LUABIND_TYPE_INFO info)
 	CScriptEngine::print_output	(L,"",LUA_ERRRUN);
 
 	Debug.fatal(DEBUG_INFO,"LUA error: cannot cast lua value to %s",info->name());
+}
+
+static void LogLuaStackOnAssert()
+{
+	lua_State* L = g_pScriptEngine ? g_pScriptEngine->lua() : nullptr;
+	if (L == nullptr)
+	{
+		return;
+	}
+
+	lua_Debug Info;
+	for (int Level = 0; lua_getstack(L, Level, &Info); ++Level)
+	{
+		lua_getinfo(L, "nSl", &Info);
+		Msg("! [LUA] %2d : [%s] %s(%d) : %s", Level, Info.what, Info.short_src, Info.currentline, Info.name ? Info.name : "");
+	}
 }
 
 void CScriptEngine::setup_callbacks()
@@ -191,13 +209,18 @@ void CScriptEngine::setup_auto_load		()
 			continue;
 		}
 
-		if (ScriptListPriority::AddonPriority(fn1) > ScriptListPriority::AddonPriority(It->second.c_str()))
+		const int NewPriority = ScriptListPriority::AddonPriority(fn1);
+		const int OldPriority = ScriptListPriority::AddonPriority(It->second.c_str());
+		if (NewPriority > OldPriority)
 		{
 			It->second = fn1;
 			continue;
 		}
 
-		Msg("! script already exists by namespace %s", fn2);
+		if (NewPriority == OldPriority)
+		{
+			Msg("! script already exists by namespace %s", fn2);
+		}
 	}
 }
 
@@ -221,6 +244,7 @@ void CScriptEngine::init()
 
 	luabind::bind_class_info(lua());
 	setup_callbacks();
+	Debug.FirstAssertCallback = &LogLuaStackOnAssert;
 	g_object_factory->export_classes(lua());
 	setup_auto_load();
 

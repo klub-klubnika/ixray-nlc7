@@ -94,10 +94,6 @@ IC void CProblemSolverAbstract::add_operator(const u32& operator_id, _operator_p
 {
 	typename OPERATOR_VECTOR::iterator I = std::lower_bound(m_operators.begin(), m_operators.end(), operator_id);
 	THROW((I == m_operators.end()) || ((*I).m_operator_id != operator_id));
-#ifdef DEBUG
-	validate_properties(OperatorValue->conditions());
-	validate_properties(OperatorValue->effects());
-#endif
 	m_actuality = false;
 	m_operators.insert(I, SOperator(operator_id, OperatorValue));
 }
@@ -383,6 +379,14 @@ IC void CProblemSolverAbstract::solve()
 	m_actuality = true;
 	m_solution_changed = true;
 	m_current_state.clear();
+
+#ifdef DEBUG
+	for (const SOperator& Operator : m_operators)
+	{
+		validate_properties(Operator.get_operator()->conditions());
+		validate_properties(Operator.get_operator()->effects());
+	}
+#endif
 
 	m_failed = !Search(reverse_search ? target_state() : current_state(), reverse_search ? current_state() : target_state(), m_solution, u16(-1), u32(-1), 8000);
 

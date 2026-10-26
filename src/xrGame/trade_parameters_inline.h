@@ -193,7 +193,11 @@ IC	void CTradeParameters::process							(_action_type type, CInifile &ini_file, 
 				ProcessMultipleTradeItemsSettingsFunc(section_name,  param_num, param1, param2);
 				continue;
 			}
-			Msg("! Section [%s] (parse trade config file [%s]) doesn't exist!", Sect.first.c_str(), ini_file.fname());
+			static xr_hash_set<xr_string> ReportedSections;
+			if (ReportedSections.emplace(xr_string(ini_file.fname()) + "|" + Sect.first.c_str()).second)
+			{
+				Msg("! Section [%s] (parse trade config file [%s]) doesn't exist!", Sect.first.c_str(), ini_file.fname());
+			}
 			continue;
 		}
 		ParseTradeParametersFunc(Sect.second,param_num,param1,param2);

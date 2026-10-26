@@ -229,6 +229,9 @@ void xrLogger::LogThreadEntry()
 		}
 	};
 
+	bool HasUnflushedLines = false;
+	u32 IdleFrames = 0;
+
 	while (bIsAlive || (logData && !logData->empty()))
 	{
 		PROF_EVENT("Log Frame");
@@ -279,6 +282,7 @@ void xrLogger::LogThreadEntry()
 					// write to file
 					mutableWritter->w(finalLine, FinalSize);
 					mutableWritter->w("\r\n", 2);
+					HasUnflushedLines = true;
 				}
 
 				xrCriticalSectionGuard guard(&logCallbackGuard);
@@ -293,6 +297,13 @@ void xrLogger::LogThreadEntry()
 
 		if (bIsAlive && !bHaveMore)
 		{
+			if (HasUnflushedLines && ++IdleFrames >= 75 && logFile != nullptr)
+			{
+				((IWriter*)logFile)->flush();
+				HasUnflushedLines = false;
+				IdleFrames = 0;
+			}
+
 			Sleep(13); // work at 60 FPS roughly
 		}
 	}

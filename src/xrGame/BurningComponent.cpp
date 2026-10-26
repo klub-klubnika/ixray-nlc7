@@ -11,8 +11,8 @@ void TBurningComponent::Load(str_c SectionName)
 {
 	m_burning_sounds_variants.clear();
 
-	xr_string unsplittedPaths = pSettings->r_string(SectionName, "burn_sound");
-	if (!unsplittedPaths.empty()) 
+	xr_string unsplittedPaths = pSettings->line_exist(SectionName, "burn_sound") ? pSettings->r_string(SectionName, "burn_sound") : "ambient\\fire2";
+	if (!unsplittedPaths.empty())
 	{
 		xr_vector<xr_string> paths = unsplittedPaths.RemoveWhitespaces().Split();
 		for (xr_string& sound_path : paths)
@@ -20,7 +20,10 @@ void TBurningComponent::Load(str_c SectionName)
 			m_burning_sounds_variants.emplace_back().create(sound_path.c_str(), st_Effect, sg_SourceType);
 		}
 	}
-	m_burning_fx = pSettings->r_string(SectionName, "burning_fx");
+	if (pSettings->line_exist(SectionName, "burning_fx"))
+	{
+		m_burning_fx = pSettings->r_string(SectionName, "burning_fx");
+	}
 }
 
 void TBurningComponent::AddBurning(float TickDamage, float DamageDecreasing, CEntityAlive* NewInitiator)

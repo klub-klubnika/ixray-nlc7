@@ -34,7 +34,12 @@ void CALifeMonsterDetailPathManager::target					(const GameGraph::_GRAPH_ID &gam
 	VERIFY(ai().game_graph().valid_vertex_id(game_vertex_id));
 	VERIFY((ai().game_graph().vertex(game_vertex_id)->level_id() != ai().alife().graph().level().level_id()) || ai().level_graph().valid_vertex_id(level_vertex_id));
 	VERIFY((ai().game_graph().vertex(game_vertex_id)->level_id() != ai().alife().graph().level().level_id()) || (ai().cross_table().vertex(level_vertex_id).game_vertex_id() == game_vertex_id));
-	VERIFY((ai().game_graph().vertex(game_vertex_id)->level_id() != ai().alife().graph().level().level_id()) || ai().level_graph().inside(level_vertex_id,position));
+#ifdef DEBUG
+	if ((ai().game_graph().vertex(game_vertex_id)->level_id() == ai().alife().graph().level().level_id()) && !ai().level_graph().inside(level_vertex_id, position))
+	{
+		Msg("! [%s] ALife target [%f][%f][%f] is outside level vertex [%u]", object().get_object().name_replace(), VPUSH(position), level_vertex_id);
+	}
+#endif
 
 	m_destination.m_game_vertex_id	= game_vertex_id;
 	m_destination.m_level_vertex_id	= level_vertex_id;

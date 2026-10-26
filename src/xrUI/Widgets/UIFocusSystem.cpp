@@ -36,8 +36,14 @@ UI_API int ReadWndSelectorsInfo(CUIXml& xml, const char* ui_path, xr_vector<WND_
 			if (attrib != "" && wndPointers.find(attrib.c_str()) != wndPointers.end())
 				wsi.pWndBottom = wndPointers[attrib.c_str()];
 
-			VERIFY(wsi.pWndLeft || wsi.pWndRight || wsi.pWndTop || wsi.pWndBottom);
-			outInfos.push_back(wsi);
+			if (wsi.pWndLeft || wsi.pWndRight || wsi.pWndTop || wsi.pWndBottom)
+			{
+				outInfos.push_back(wsi);
+			}
+			else
+			{
+				Msg("! [%s] %s for window [%s] has no neighbour windows, skipped", ui_path, pTagName, xml.ReadAttrib(startNode, pTagName, tagIndex, "wnd"));
+			}
 		}
 
 		++tagIndex;

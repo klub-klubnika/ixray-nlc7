@@ -31,7 +31,7 @@ void CDelayedActionFuse::Initialize(float time,float critical_condition)
 {
 	if(isActive())		return;
 
-	VERIFY(time>=0.f&&critical_condition>=0.f);
+	VERIFY(time>=0.f);
 	if(!fis_zero(time))
 	{
 		m_fSpeedChangeCondition=critical_condition;//time;
