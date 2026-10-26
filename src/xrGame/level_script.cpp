@@ -822,6 +822,25 @@ void set_inventory_grid_disabled(bool disabled)
 {
 	SetInventoryGridDisabledScript(disabled);
 }
+
+void LevelNetUpdate()
+{
+	if (g_pGameLevel == nullptr)
+	{
+		return;
+	}
+
+	Level().ClientReceive();
+	Level().ProcessGameEvents();
+}
+
+void set_texture_source(const char* name, const char* source)
+{
+	if (Device.m_pRender)
+	{
+		Device.m_pRender->ResourcesSetTextureSource(name, source);
+	}
+}
 #include "actor_statistic_mgr.h"
 void add_actor_points(const char* sect, const char* detail_key, int cnt, int pts)
 {
@@ -2056,6 +2075,8 @@ void CLevel::script_register(lua_State *L)
 		def("set_inventory_volume_enabled",		&set_inventory_volume_enabled),
 		def("is_inventory_grid_disabled",		&is_inventory_grid_disabled),
 		def("set_inventory_grid_disabled",		&set_inventory_grid_disabled),
+		def("set_texture_source",				&set_texture_source),
+		def("net_update",						&LevelNetUpdate),
 		def("add_cam_effector",					&add_cam_effector),
 		def("add_cam_effector2",				&add_cam_effector2),
 		def("add_cam_effector2",				&add_cam_effector_without_fov),

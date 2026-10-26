@@ -86,6 +86,17 @@ CScriptGameObject* net_find(ALife::_OBJECT_ID object_id)
 	return 0;
 }
 
+u32 GameVertexByLevelVertex(u32 LevelVertexID)
+{
+	const auto& CrossTable = ai().cross_table();
+	if (LevelVertexID >= CrossTable.header().level_vertex_count())
+	{
+		return u32(-1);
+	}
+
+	return CrossTable.vertex(LevelVertexID).game_vertex_id();
+}
+
 #pragma optimize("s",on)
 void CompatibilityBringeExport(lua_State* L)
 {
@@ -93,6 +104,11 @@ void CompatibilityBringeExport(lua_State* L)
 	[
 		luabind::def("dist_to", SimDistTo),
 		luabind::def("net_find", net_find)
+	];
+
+	luabind::module(L)
+	[
+		luabind::def("game_vertex_by_level_vertex", GameVertexByLevelVertex)
 	];
 
 	luabind::object script_events = luabind::get_globals(L)["script_events"];

@@ -28,6 +28,16 @@ void rescan_path_script(CLocatorAPI* fs, const char* initial)
 }
 //-Alundaio
 
+void r_close_script(CLocatorAPI* fs, IReader* reader)
+{
+	fs->r_close(reader);
+}
+
+void w_close_script(CLocatorAPI* fs, IWriter* writer)
+{
+	fs->w_close(writer);
+}
+
 class FS_file_list{
 	xr_vector<LPSTR>*	m_p;
 public :
@@ -247,11 +257,11 @@ void fs_registrator::script_register(lua_State *L)
 			.def("get_file_age_str",					&get_file_age_str)
 			.def("r_open",								(IReader*	(CLocatorAPI::*)(const char*,const char*)) (&CLocatorAPI::r_open))
 			.def("r_open",								(IReader*	(CLocatorAPI::*)(const char*)) (&CLocatorAPI::r_open))
-			.def("r_close",								(void (CLocatorAPI::*)(IReader *&))(&CLocatorAPI::r_close))
+			.def("r_close",								&r_close_script)
 
 			.def("w_open",								(IWriter*	(CLocatorAPI::*)(const char*,const char*)) (&CLocatorAPI::w_open))
 			.def("w_open",								(IWriter*	(CLocatorAPI::*)(const char*)) (&CLocatorAPI::w_open))
-			.def("w_close",								&CLocatorAPI::w_close)
+			.def("w_close",								&w_close_script)
 
 			.def("file_list_open",						&file_list_open_script)
 			.def("file_list_open",						&file_list_open_script_2)

@@ -157,8 +157,8 @@ void CUIWindow::script_register(lua_State *L)
 		.def("SetWndRect",				(void (CUIWindow::*)(Frect))	&CUIWindow::SetWndRect_script)
 		.def("SetWndRect", +[](CUIWindow* self, float x, float y, float width, float height)
 			{
-				const Frect rect{ x, y, width, height };
-				self->SetWndRect(rect);
+				self->SetWndPos(Fvector2().set(x, y));
+				self->SetWndSize(Fvector2().set(width, height));
 			})
 
 		.def("SetWndPos",				(void (CUIWindow::*)(Fvector2)) &CUIWindow::SetWndPos_script)

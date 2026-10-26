@@ -327,6 +327,28 @@ ALife::_SPAWN_ID CALifeSimulator__spawn_id		(CALifeSimulator *self_, ALife::_SPA
 	return								(((const CALifeSimulator *)self_)->spawns().spawn_id(spawn_story_id));
 }
 
+luabind::object CALifeSimulator__spawn_entries(CALifeSimulator* self_)
+{
+	lua_State* L = ai().script_engine().lua();
+	luabind::object Result = luabind::newtable(L);
+	int Index = 1;
+	for (const auto& [SpawnID, Vertex] : self_->spawns().spawns().vertices())
+	{
+		CSE_Abstract& Object = Vertex->data()->object();
+		luabind::object Entry = luabind::newtable(L);
+		Entry["id"] = SpawnID;
+		Entry["name"] = Object.name_replace();
+		Entry["section"] = Object.name();
+		if (CSE_ALifeObject* AlifeObject = smart_cast<CSE_ALifeObject*>(&Object))
+		{
+			Entry["story_id"] = AlifeObject->m_story_id;
+			Entry["spawn_story_id"] = AlifeObject->m_spawn_story_id;
+		}
+		Result[Index++] = Entry;
+	}
+	return Result;
+}
+
 void CALifeSimulator__release(CALifeSimulator* self_, CSE_Abstract* object, bool)
 {
 	VERIFY(self_);
@@ -565,6 +587,7 @@ void CALifeSimulator::script_register			(lua_State *L)
 			.def("release",					&CALifeSimulator__release)
 			.def("release",					&CALifeSimulator__release2)												  
 			.def("spawn_id",				&CALifeSimulator__spawn_id)
+			.def("spawn_entries",			&CALifeSimulator__spawn_entries)
 			.def("actor",					&get_actor)
 			.def("has_info",				&has_info)
 			.def("dont_has_info",			&dont_has_info)

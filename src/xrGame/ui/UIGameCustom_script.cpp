@@ -157,6 +157,10 @@ void CUIGameCustom::script_register(lua_State *L)
             {
                 return gameUi->AddCustomStatic(id, singleInstance);
             })
+			.def("AddCustomStatic",			+[](CUIGameCustom* gameUi, const char* id)
+            {
+                return gameUi->AddCustomStatic(id, true);
+            })
 			.def("AddCustomMessage",		(void(CUIGameCustom::*)(const char*, float, float, float, CGameFont*, u16, u32/*, const char**/))&CUIGameCustom::AddCustomMessage)
 			.def("AddCustomMessage",		(void(CUIGameCustom::*)(const char*, float, float, float, CGameFont*, u16, u32/*, const char**/, float))&CUIGameCustom::AddCustomMessage)
 			.def("CustomMessageOut",		&CUIGameCustom::CustomMessageOut)

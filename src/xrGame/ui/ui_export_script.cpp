@@ -5,6 +5,7 @@
 #include "MainMenu.h"
 
 #include "UIGameCustom.h"
+#include "ui/UIInventoryWnd.h"
 #include "ui/UIScriptWnd.h"
 #include "../xrUI/Widgets/UIButton.h"
 #include "../xrUI/Widgets/UIProgressBar.h"
@@ -48,6 +49,12 @@ float get_current_kx()
 bool is_widescreen()
 {
 	return UI().is_widescreen();
+}
+
+CUIDialogWnd* get_inventory_wnd()
+{
+	CUIGameCustom* gameUi = CurrentGameUI();
+	return gameUi != nullptr ? gameUi->InventoryWnd() : nullptr;
 }
 
 const char* gamepad_prefix()
@@ -126,6 +133,7 @@ void UIRegistrator::script_register(lua_State *L)
 		def("get_current_kx",				&get_current_kx),
 		def("is_widescreen",				&is_widescreen),
 		def("gamepad_prefix",				&gamepad_prefix),
+		def("get_inventory_wnd",			&get_inventory_wnd),
 		def("QueryScrollBarProfileLayout",	&QueryScrollBarProfileLayout_script)
 	];
 
