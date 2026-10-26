@@ -21,6 +21,35 @@
 
 extern const char* alife_section;
 
+namespace SavedGameWrapperReader
+{
+	CSE_ALifeCreatureActor* ReadActor(IReader& Stream)
+	{
+		NET_Packet Packet;
+		u16 PacketID;
+
+		Packet.B.data.resize(Stream.r_u16());
+		Stream.r(Packet.B.data.data(), Packet.B.data.size());
+		Packet.r_begin(PacketID);
+		R_ASSERT2(M_SPAWN == PacketID, "Invalid packet ID (!= M_SPAWN)");
+
+		string64 Section;
+		Packet.r_stringZ(Section);
+		CSE_Abstract* Abstract = (new CSE_ALifeCreatureActor(Section))->init();
+		CSE_ALifeCreatureActor* Actor = smart_cast<CSE_ALifeCreatureActor*>(Abstract);
+		R_ASSERT2(Actor, "The first saved object is not an actor");
+		Actor->Spawn_Read(Packet);
+
+		Packet.B.data.resize(Stream.r_u16());
+		Stream.r(Packet.B.data.data(), Packet.B.data.size());
+		Packet.r_begin(PacketID);
+		R_ASSERT2(M_UPDATE == PacketID, "Invalid packet ID (!= M_UPDATE)");
+		Actor->UPDATE_Read(Packet);
+
+		return Actor;
+	}
+}
+
 const char* CSavedGameWrapper::saved_game_full_name	(const char* saved_game_name, string_path& result, const char* extension)
 {
 	string_path					temp;
@@ -130,10 +159,9 @@ CSavedGameWrapper::CSavedGameWrapper			(const char* saved_game_name)
 		R_ASSERT2				(reader.find_chunk(OBJECT_CHUNK_DATA),"Can't find chunk OBJECT_CHUNK_DATA!");
 		u32						count = reader.r_u32();
 		VERIFY					(count > 0);
-		CSE_ALifeDynamicObject	*object = CALifeObjectRegistry::get_object(reader);
+		CSE_ALifeCreatureActor	*actor = SavedGameWrapperReader::ReadActor(reader);
+		CSE_ALifeDynamicObject	*object = actor;
 		VERIFY					(object->ID == 0);
-		CSE_ALifeCreatureActor	*actor = smart_cast<CSE_ALifeCreatureActor*>(object);
-		VERIFY					(actor);
 
 		m_actor_health			= actor->get_health();
 
