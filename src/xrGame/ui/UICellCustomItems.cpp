@@ -85,7 +85,7 @@ CUIInventoryCellItem::CUIInventoryCellItem(CInventoryItem* itm)
 bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
 {
 	CUIInventoryCellItem* ci = smart_cast<CUIInventoryCellItem*>(itm);
-	if (!itm)
+	if (!ci)
 	{
 		return false;
 	}
