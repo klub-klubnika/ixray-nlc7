@@ -81,6 +81,9 @@ void CShootingObject::Load(const char* section)
 
 	LoadFireParams(section);
 	LoadEffects(section);
+
+	ConstDeviation.pitch = pSettings->read_if_exists<float>(section, "const_deviation_pitch", 0.0f);
+	ConstDeviation.yaw = pSettings->read_if_exists<float>(section, "const_deviation_yaw", 0.0f);
 }
 
 void CShootingObject::LoadEffects(const char* Section)
@@ -540,7 +543,14 @@ void CShootingObject::FireBullet(const Fvector& pos,
 {
 	Fvector dir;
 	random_dir(dir,shot_dir,fire_disp);
-	
+
+	if (ConstDeviation.pitch != 0.0f || ConstDeviation.yaw != 0.0f)
+	{
+		float DirYaw, DirPitch;
+		dir.getHP(DirYaw, DirPitch);
+		dir.setHP(DirYaw + ConstDeviation.yaw, DirPitch + ConstDeviation.pitch);
+	}
+
 	bool aim_bullet;
 	if (m_bUseAimBullet)
 	{

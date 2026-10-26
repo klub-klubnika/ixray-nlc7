@@ -7,6 +7,7 @@
 #pragma once
 
 #include "alife_space.h"
+#include "../xrServerEntities/xrServer_Space.h"
 #include "../xrEngine/Render.h"
 #include "anticheat_dumpable_object.h"
 #include "../xrPhysics/DamageSource.h"
@@ -58,6 +59,9 @@ protected:
 	virtual void			FireStart			();
 	virtual void			FireEnd				();
 public:
+	// Constant shot deviation (NLC): added to every bullet direction, set from config or scripts
+	SRotation				ConstDeviation;
+
 	IC bool					IsWorking			()	const	{return bWorking;}
 	void SetWorking(bool status) { bWorking = status; }
 	virtual bool			ParentMayHaveAimBullet()		{return false;}

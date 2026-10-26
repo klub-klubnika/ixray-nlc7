@@ -9,6 +9,7 @@ using namespace luabind;
 
 namespace WeaponScript
 {
+	SRotation* GetConstDeviation(CWeapon* Weapon) { return &Weapon->ConstDeviation; }
 	int GetAmmoElapsed(CWeapon* Weapon) { return Weapon->GetAmmoElapsed(); }
 	void SetAmmoElapsed(CWeapon* Weapon, int Count) { Weapon->SetAmmoElapsed(Count); }
 	int GetMagSize(CWeapon* Weapon) { return Weapon->GetAmmoMagSize(); }
@@ -60,6 +61,7 @@ void CWeapon::script_register(lua_State* L)
 	module(L)
 	[
 		class_<CWeapon, bases<CGameObject, CInventoryItem>>("CWeapon")
+			.property("const_deviation", &WeaponScript::GetConstDeviation)
 			.property("ammo_elapsed", &WeaponScript::GetAmmoElapsed, &WeaponScript::SetAmmoElapsed)
 			.property("ammo_mag_size", &WeaponScript::GetMagSize, &WeaponScript::SetMagSize)
 			.property("zoom_factor", &WeaponScript::GetZoomFactor, &WeaponScript::SetZoomFactor)
