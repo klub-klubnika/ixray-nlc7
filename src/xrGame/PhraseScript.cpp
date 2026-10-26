@@ -12,6 +12,52 @@
 #include "Actor.h"
 
 
+namespace DialogScriptCall
+{
+	bool HasArguments(const char* Name)
+	{
+		const char* Bracket = strchr(Name, '(');
+		return Bracket != nullptr && strchr(Bracket, ')') != nullptr;
+	}
+
+	bool Run(const char* Code, const CGameObject* Speaker1, const CGameObject* Speaker2, const char* DialogID, const char* PhraseID, const char* NextPhraseID, bool NeedResult)
+	{
+		lua_State* L = ai().script_engine().lua();
+		const int Top = lua_gettop(L);
+
+		lua_newtable(L);
+		lua_pushinteger(L, Speaker1->ID());
+		lua_setfield(L, -2, "speaker_id");
+		if (Speaker2 != nullptr)
+		{
+			lua_pushinteger(L, Speaker2->ID());
+			lua_setfield(L, -2, "speaker2_id");
+		}
+		lua_pushstring(L, DialogID != nullptr ? DialogID : "");
+		lua_setfield(L, -2, "dialog_id");
+		lua_pushstring(L, PhraseID != nullptr ? PhraseID : "");
+		lua_setfield(L, -2, "phrase_id");
+		if (NextPhraseID != nullptr)
+		{
+			lua_pushstring(L, NextPhraseID);
+			lua_setfield(L, -2, "next_phrase_id");
+		}
+		lua_setglobal(L, "dialog_params");
+
+		const xr_string Chunk = NeedResult ? xr_string("return ") + Code : xr_string(Code);
+		if (luaL_loadbuffer(L, Chunk.c_str(), Chunk.size(), Code) != 0 || lua_pcall(L, 0, 1, 0) != 0)
+		{
+			Msg("! Dialog script call [%s] failed: %s", Code, lua_tostring(L, -1));
+			lua_settop(L, Top);
+			return false;
+		}
+
+		const bool Result = !NeedResult || (lua_isboolean(L, -1) && lua_toboolean(L, -1));
+		lua_settop(L, Top);
+		return Result;
+	}
+}
+
 //загрузка из XML файла
 void CDialogScriptHelper::Load		(CUIXml* uiXml, XML_NODE* phrase_node)
 {
@@ -110,8 +156,16 @@ bool CDialogScriptHelper::Precondition	(const CGameObject* pSpeakerGO, const cha
 
 	for(u32 i = 0; i<Preconditions().size(); ++i)
 	{
-		luabind::functor<bool>	lua_function;
 		THROW(*Preconditions()[i]);
+		if (DialogScriptCall::HasArguments(*Preconditions()[i]))
+		{
+			predicate_result = DialogScriptCall::Run(*Preconditions()[i], pSpeakerGO, nullptr, dialog_id, phrase_id, nullptr, true);
+			if (!predicate_result)
+				break;
+			continue;
+		}
+
+		luabind::functor<bool>	lua_function;
 		bool functor_exists = ai().script_engine().functor(*Preconditions()[i] ,lua_function);
 		THROW3(functor_exists, "Cannot find precondition", *Preconditions()[i]);
 		predicate_result = lua_function	(pSpeakerGO->lua_game_object());
@@ -131,8 +185,14 @@ void CDialogScriptHelper::Action			(const CGameObject* pSpeakerGO, const char* d
 
 	for(u32 i = 0; i<Actions().size(); ++i)
 	{
-		luabind::functor<void>	lua_function;
 		THROW(*Actions()[i]);
+		if (DialogScriptCall::HasArguments(*Actions()[i]))
+		{
+			DialogScriptCall::Run(*Actions()[i], pSpeakerGO, nullptr, dialog_id, phrase_id, nullptr, false);
+			continue;
+		}
+
+		luabind::functor<void>	lua_function;
 		bool functor_exists = ai().script_engine().functor(*Actions()[i] ,lua_function);
 		THROW3(functor_exists, "Cannot find phrase dialog script function", *Actions()[i]);
 		lua_function		(pSpeakerGO->lua_game_object(), dialog_id);
@@ -157,8 +217,16 @@ bool CDialogScriptHelper::Precondition	(	const CGameObject* pSpeakerGO1,
 	}
 	for(u32 i = 0; i<Preconditions().size(); ++i)
 	{
-		luabind::functor<bool>	lua_function;
 		THROW(*Preconditions()[i]);
+		if (DialogScriptCall::HasArguments(*Preconditions()[i]))
+		{
+			predicate_result = DialogScriptCall::Run(*Preconditions()[i], pSpeakerGO1, pSpeakerGO2, dialog_id, phrase_id, next_phrase_id, true);
+			if (!predicate_result)
+				break;
+			continue;
+		}
+
+		luabind::functor<bool>	lua_function;
 		bool functor_exists = ai().script_engine().functor(*Preconditions()[i] ,lua_function);
 		THROW3(functor_exists, "Cannot find phrase precondition", *Preconditions()[i]);
 		predicate_result = lua_function	(pSpeakerGO1->lua_game_object(), pSpeakerGO2->lua_game_object(), dialog_id, phrase_id, next_phrase_id);
@@ -180,8 +248,14 @@ void CDialogScriptHelper::Action			(const CGameObject* pSpeakerGO1, const CGameO
 
 	for(u32 i = 0; i<Actions().size(); ++i)
 	{
-		luabind::functor<void>	lua_function;
 		THROW(*Actions()[i]);
+		if (DialogScriptCall::HasArguments(*Actions()[i]))
+		{
+			DialogScriptCall::Run(*Actions()[i], pSpeakerGO1, pSpeakerGO2, dialog_id, phrase_id, nullptr, false);
+			continue;
+		}
+
+		luabind::functor<void>	lua_function;
 		bool functor_exists = ai().script_engine().functor(*Actions()[i] ,lua_function);
 		if (!functor_exists) {
 			Msg("[ERROR] Cannot find phrase dialog script function %s", *Actions()[i]);
