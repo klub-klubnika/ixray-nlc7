@@ -2,6 +2,7 @@
 #include "CustomDetector.h"
 #include "Inventory.h"
 #include "Actor.h"
+#include "Level.h"
 
 CCustomDetector::~CCustomDetector()
 {
@@ -22,6 +23,8 @@ void CCustomDetector::Load(const char* section)
 
 	IPowerManager::SetSelfObject(cast_inventory_item(), H_Parent());
 	IPowerManager::Load(section, cast_inventory_item());
+
+	PassiveZones.Load(section, this);
 }
 
 void CCustomDetector::shedule_Update(u32 dt)
@@ -29,6 +32,18 @@ void CCustomDetector::shedule_Update(u32 dt)
 	PROF_EVENT(__FUNCTION__)
 
 	inherited::shedule_Update(dt);
+
+	if (PassiveZones.IsAvailable())
+	{
+		// Works from a slot or the belt of the viewed actor, like SoC detectors
+		const bool InSlotOrBelt = CurrPlace() == eItemPlaceSlot || CurrPlace() == eItemPlaceBelt;
+		const bool HasPower = !IPowerManager::IsAllow() || IPowerManager::GetLeftPowerValue() > 0.0f;
+		PassiveZones.SetWorking(H_Parent() != nullptr && H_Parent() == Level().CurrentViewEntity() && InSlotOrBelt && HasPower);
+		if (PassiveZones.IsWorking())
+		{
+			PassiveZones.UpdateZones(H_Parent()->Position());
+		}
+	}
 
 	IPowerManager::SetEnabled(m_bWorking);
 
@@ -86,6 +101,17 @@ void CCustomDetector::OnH_B_Independent(bool just_before_destroy)
 	inherited::OnH_B_Independent(just_before_destroy);
 
 	m_artefacts.clear();
+	PassiveZones.SetWorking(false);
+}
+
+void CCustomDetector::UpdateCL()
+{
+	inherited::UpdateCL();
+
+	if (PassiveZones.IsWorking() && H_Parent() != nullptr)
+	{
+		PassiveZones.UpdateSounds(H_Parent()->Position());
+	}
 }
 
 void CCustomDetector::TurnDetectorInternal(bool b)

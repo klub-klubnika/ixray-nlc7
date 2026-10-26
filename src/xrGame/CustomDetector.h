@@ -4,6 +4,7 @@
 #include "CustomDetectorZones.h"
 #include "ui/ArtefactDetectorUI.h"
 #include "IPowerManager.h"
+#include "PassiveZoneDetector.h"
 
 class CUIArtefactDetectorBase;
 
@@ -15,6 +16,7 @@ class CCustomDetector : public CCustomDevice, public IPowerManager
 protected:
 	CUIArtefactDetectorBase* m_ui = nullptr;
 	CAfList	m_artefacts;
+	CPassiveZoneDetector PassiveZones;
 public:
 	bool m_need_refresh = false;
 public:
@@ -25,6 +27,7 @@ public:
 	void Load(const char* section) override;
 	void OnH_B_Independent(bool just_before_destroy) override;
 	void shedule_Update(u32 dt) override;
+	void UpdateCL() override;
 	virtual void TurnDetectorInternal(bool b) final;
 
 	const SCustomDetectorDesc& DetectorDesc() const { VERIFY(CurrentDetectorDesc); return *CurrentDetectorDesc; }
