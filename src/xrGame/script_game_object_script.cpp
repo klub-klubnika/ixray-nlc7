@@ -47,6 +47,8 @@
 #include "Weapon.h"
 #include "Actor.h"
 #include "ActorCondition.h"
+#include "alife_simulator.h"
+#include "alife_object_registry.h"
 
 using namespace luabind;
 
@@ -102,6 +104,55 @@ namespace ScriptActorConditions
 }
 
 extern CScriptActionPlanner *script_action_planner(CScriptGameObject *obj);
+extern luabind::object ToEngineObject(CGameObject* Object);
+
+namespace NlcGameObjectScript
+{
+	luabind::object GetInterface(CScriptGameObject* Object) { return ToEngineObject(&Object->object()); }
+
+	CInventory* GetInventory(CScriptGameObject* Object)
+	{
+		CInventoryOwner* Owner = smart_cast<CInventoryOwner*>(&Object->object());
+		return Owner != nullptr ? &Owner->inventory() : nullptr;
+	}
+
+	CEntityCondition* GetConditions(CScriptGameObject* Object)
+	{
+		CEntityAlive* Entity = smart_cast<CEntityAlive*>(&Object->object());
+		return Entity != nullptr ? &Entity->conditions() : nullptr;
+	}
+
+	CHitImmunity* GetImmunities(CScriptGameObject* Object)
+	{
+		if (CEntityCondition* Conditions = GetConditions(Object))
+		{
+			return Conditions;
+		}
+		return smart_cast<CHitImmunity*>(&Object->object());
+	}
+
+	u32 GetLevelID(CScriptGameObject* Object)
+	{
+		return ai().game_graph().vertex(Object->object().ai_location().game_vertex_id())->level_id();
+	}
+
+	void SetSection(CScriptGameObject* Object, const char* Section)
+	{
+		Object->object().cNameSect_set(Section);
+		if (ai().get_alife())
+		{
+			if (CSE_ALifeDynamicObject* ServerObject = ai().alife().objects().object(Object->ID(), true))
+			{
+				ServerObject->set_name(Section);
+			}
+		}
+	}
+
+	const char* GetLevelName(CScriptGameObject* Object)
+	{
+		return ai().game_graph().header().level(GameGraph::_LEVEL_ID(GetLevelID(Object))).name().c_str();
+	}
+}
 
 namespace ScriptAnimationCompat
 {
@@ -1058,6 +1109,21 @@ void CScriptGameObject::script_register(lua_State *L)
 			.def("cast_BottleItem", &CScriptGameObject::cast_BottleItem)
 			.def("cast_Torch", &CScriptGameObject::cast_Torch)
 			.def("cast_InventoryBox", &CScriptGameObject::cast_InventoryBox)
+			.def("get_weapon", &CScriptGameObject::cast_Weapon)
+			.def("get_ammo", &CScriptGameObject::cast_Ammo)
+			.def("get_inventory_item", &CScriptGameObject::cast_InventoryItem)
+			.def("get_eatable_item", &CScriptGameObject::cast_EatableItem)
+			.def("get_outfit", &CScriptGameObject::cast_CustomOutfit)
+			.def("get_artefact", &CScriptGameObject::cast_Artefact)
+			.def("get_anomaly", &CScriptGameObject::cast_CustomZone)
+			.def("get_base_monster", &CScriptGameObject::cast_Monster)
+			.def("get_interface", &NlcGameObjectScript::GetInterface)
+			.def("set_section", &NlcGameObjectScript::SetSection)
+			.property("inventory", &NlcGameObjectScript::GetInventory)
+			.property("conditions", &NlcGameObjectScript::GetConditions)
+			.property("immunities", &NlcGameObjectScript::GetImmunities)
+			.property("level_id", &NlcGameObjectScript::GetLevelID)
+			.property("level_name", &NlcGameObjectScript::GetLevelName)
 
 			.def("cast_Helmet", &CScriptGameObject::cast_CHelmet)
 			.def("cast_AntigasFilter", &CScriptGameObject::cast_AntigasFilter)

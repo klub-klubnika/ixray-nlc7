@@ -30,8 +30,11 @@ void CCustomOutfit::script_register(lua_State *L)
 {
 	module(L)
 		[
-			class_<CCustomOutfit, CGameObject>("CCustomOutfit")
+			class_<CCustomOutfit, bases<CGameObject, CInventoryItem>>("CCustomOutfit")
 			.def(constructor<>())
+			.def("condition_ex", &CCustomOutfit::GetCondition)
+			.def_readwrite("additional_inventory_weight", &CCustomOutfit::m_additional_weight)
+			.def_readwrite("additional_inventory_weight2", &CCustomOutfit::m_additional_weight2)
 			.def_readwrite("m_fPowerLoss", static_cast<float CCustomOutfit::*>(&CCustomOutfit::m_fPowerLoss))
 			.def_readwrite("m_additional_weight", &CCustomOutfit::m_additional_weight)
 			.def_readwrite("m_additional_weight2", &CCustomOutfit::m_additional_weight2)

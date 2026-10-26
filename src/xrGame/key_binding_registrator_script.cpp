@@ -165,6 +165,8 @@ void key_binding_registrator::script_register(lua_State *L)
 				value("kSKIN",						int(kSKIN)),
 				value("kTEAM",						int(kTEAM)),
 				value("kACTIVE_JOBS",				int(kACTIVE_JOBS)),
+				value("kMAP",						int(kMAP)),
+				value("kCONTACTS",					int(kCONTACTS)),
 				value("kQUICK_SAVE",				int(kQUICK_SAVE)),
 				value("kQUICK_LOAD",				int(kQUICK_LOAD)),
 				value("kPAUSE",				        int(kPAUSE)),

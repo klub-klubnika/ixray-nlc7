@@ -158,6 +158,7 @@ void export_classes	(lua_State *L)
 	IRenderableScript::script_register(L);
 	ICollidableScript::script_register(L);
 	CObjectScript::script_register(L);
+	CInventoryItem::script_register(L);
 	CPhysicObject::script_register(L);
 	CExplosive::script_register(L);
 	CF1::script_register(L);
@@ -266,7 +267,6 @@ void export_classes	(lua_State *L)
 	CCustomOutfit::script_register(L);
 	CFoodItem::script_register(L);
 	CHudItem::script_register(L);
-	CInventoryItem::script_register(L);
 	CInventoryOwner::script_register(L);
 	CMedkit::script_register(L);
 	CPhysicsShellHolder::script_register(L);

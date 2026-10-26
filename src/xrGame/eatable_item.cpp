@@ -297,12 +297,19 @@ void CEatableItem::Hit(SHit* pHDS)
 
 using namespace luabind;
 
+namespace EatableItemScript
+{
+	u32 GetPortions(CEatableItem* Item) { return Item->GetRemainingUses(); }
+	void SetPortions(CEatableItem* Item, u32 Portions) { Item->SetRemainingUses(u8(Portions)); }
+}
+
 #pragma optimize("s",on)
 void CEatableItem::script_register(lua_State* L)
 {
 	module(L)
 		[
-			class_<CEatableItem>("CEatableItem")
+			class_<CEatableItem, CInventoryItem>("CEatableItem")
+				.property("eat_portions_num", &EatableItemScript::GetPortions, &EatableItemScript::SetPortions)
 				.def("Empty", &CEatableItem::Empty)
 				.def("CanDelete", &CEatableItem::CanDelete)
 				.def("GetMaxUses", &CEatableItem::GetMaxUses)

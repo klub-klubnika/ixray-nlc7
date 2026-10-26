@@ -20,6 +20,14 @@ const char* get_section_name(const CSE_Abstract *abstract)
 	return	(abstract->name());
 }
 
+void set_section_name(CSE_Abstract* Abstract, const char* Section)
+{
+	Abstract->set_name(Section);
+	string64 NameReplace;
+	xr_sprintf(NameReplace, "%s%u", Section, Abstract->ID);
+	Abstract->set_name_replace(NameReplace);
+}
+
 CScriptIniFile *get_spawn_ini(CSE_Abstract *abstract)
 {
 	return	((CScriptIniFile*)&abstract->spawn_ini());
@@ -114,6 +122,7 @@ void CSE_Abstract::script_register(lua_State *L)
 			.def_readwrite	("position",		&BaseType::o_Position)
 			.def_readwrite	("angle",			&BaseType::o_Angle)
 			.def			("section_name",	&get_section_name)
+			.def			("set_section_name",	&set_section_name)
 			.def			("name",			&xrServerObjectsScript::get_name)
 			.def			("clsid",			&BaseType::script_clsid)
 			.def			("spawn_ini",		&get_spawn_ini)

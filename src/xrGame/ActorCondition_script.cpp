@@ -49,6 +49,63 @@ void WoundForEach(CActorCondition* conditions, const luabind::functor<bool> &fun
 	}
 }
 
+namespace NlcConditionFields
+{
+	using ChangeValues = std::remove_reference_t<decltype(std::declval<CEntityCondition&>().change_v())>;
+	using ChangeField = float ChangeValues::*;
+
+	template <ChangeField Field>
+	float GetChange(CEntityCondition* Condition) { return Condition->change_v().*Field; }
+
+	template <ChangeField Field>
+	void SetChange(CEntityCondition* Condition, float Value) { Condition->change_v().*Field = Value; }
+
+	float GetHealth(CEntityCondition* Condition) { return Condition->GetHealth(); }
+	void SetHealth(CEntityCondition* Condition, float Value) { Condition->SetHealth(Value); }
+	float GetMaxHealth(CEntityCondition* Condition) { return Condition->GetMaxHealth(); }
+	void SetMaxHealth(CEntityCondition* Condition, float Value) { Condition->max_health() = Value; }
+	float GetPower(CEntityCondition* Condition) { return Condition->GetPower(); }
+	void SetPower(CEntityCondition* Condition, float Value) { Condition->SetPower(Value); }
+	float GetMaxPower(CEntityCondition* Condition) { return Condition->GetMaxPower(); }
+	void SetMaxPower(CEntityCondition* Condition, float Value) { Condition->SetMaxPower(Value); }
+	float GetRadiation(CEntityCondition* Condition) { return Condition->GetRadiation(); }
+	void SetRadiation(CEntityCondition* Condition, float Value) { Condition->radiation() = Value; }
+	float GetPsyHealth(CEntityCondition* Condition) { return Condition->GetPsyHealth(); }
+	void SetPsyHealth(CEntityCondition* Condition, float Value) { Condition->ChangePsyHealth(Value - Condition->GetPsyHealth()); }
+
+	float GetSatiety(CActorCondition* Condition) { return Condition->Satiety.Current; }
+	void SetSatiety(CActorCondition* Condition, float Value) { Condition->Satiety.Current = Value; }
+	float GetSatietyV(CActorCondition* Condition) { return Condition->Satiety.Variability; }
+	void SetSatietyV(CActorCondition* Condition, float Value) { Condition->Satiety.Variability = Value; }
+	float GetSatietyHealthV(CActorCondition* Condition) { return Condition->Satiety.HealthBoost; }
+	void SetSatietyHealthV(CActorCondition* Condition, float Value) { Condition->Satiety.HealthBoost = Value; }
+	float GetAlcohol(CActorCondition* Condition) { return Condition->Alcohol.Current; }
+	void SetAlcohol(CActorCondition* Condition, float Value) { Condition->Alcohol.Current = Value; }
+	float GetAlcoholV(CActorCondition* Condition) { return Condition->Alcohol.Variability; }
+	void SetAlcoholV(CActorCondition* Condition, float Value) { Condition->Alcohol.Variability = Value; }
+	template <ALife::EHitType HitType>
+	float GetImmunity(CHitImmunity* Immunity) { return Immunity->GetHitImmunity(HitType); }
+
+	template <ALife::EHitType HitType>
+	void SetImmunity(CHitImmunity* Immunity, float Value) { Immunity->SetHitImmunity(HitType, Value); }
+
+	float GetWoundSize(CEntityCondition* Condition, u32 Bone, u32 HitType)
+	{
+		const auto& Wounds = Condition->wounds();
+		return Bone < Wounds.size() ? Wounds[Bone]->TypeSize(ALife::EHitType(HitType)) : 0.0f;
+	}
+
+	float GetWoundTotalSize(CEntityCondition* Condition, u32 Bone)
+	{
+		const auto& Wounds = Condition->wounds();
+		return Bone < Wounds.size() ? Wounds[Bone]->TotalSize() : 0.0f;
+	}
+
+	bool IsLimping(CActorCondition* Condition) { return Condition->IsLimping(); }
+	bool IsCantWalk(CActorCondition* Condition) { return Condition->IsCantWalk(); }
+	bool IsCantSprint(CActorCondition* Condition) { return Condition->IsCantSprint(); }
+}
+
 #pragma optimize("s",on)
 void CActorCondition::script_register(lua_State *L)
 {
@@ -74,8 +131,23 @@ void CActorCondition::script_register(lua_State *L)
 			.def("SetDestroy", &CWound::SetDestroy)
 			.def("GetDestroy", &CWound::GetDestroy)
 			,
-			class_<CEntityCondition>("CEntityCondition")
+			class_<CHitImmunity>("CHitImmunity")
+			.property("burn_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeBurn>, &NlcConditionFields::SetImmunity<ALife::eHitTypeBurn>)
+			.property("shock_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeShock>, &NlcConditionFields::SetImmunity<ALife::eHitTypeShock>)
+			.property("chemical_burn_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeChemicalBurn>, &NlcConditionFields::SetImmunity<ALife::eHitTypeChemicalBurn>)
+			.property("radiation_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeRadiation>, &NlcConditionFields::SetImmunity<ALife::eHitTypeRadiation>)
+			.property("telepatic_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeTelepatic>, &NlcConditionFields::SetImmunity<ALife::eHitTypeTelepatic>)
+			.property("wound_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeWound>, &NlcConditionFields::SetImmunity<ALife::eHitTypeWound>)
+			.property("fire_wound_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeFireWound>, &NlcConditionFields::SetImmunity<ALife::eHitTypeFireWound>)
+			.property("strike_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeStrike>, &NlcConditionFields::SetImmunity<ALife::eHitTypeStrike>)
+			.property("explosion_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeExplosion>, &NlcConditionFields::SetImmunity<ALife::eHitTypeExplosion>)
+			.property("wound_2_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypeWound_2>, &NlcConditionFields::SetImmunity<ALife::eHitTypeWound_2>)
+			.property("physic_strike_immunity", &NlcConditionFields::GetImmunity<ALife::eHitTypePhysicStrike>, &NlcConditionFields::SetImmunity<ALife::eHitTypePhysicStrike>)
+			,
+			class_<CEntityCondition, CHitImmunity>("CEntityCondition")
 			//.def(constructor<>())
+			.def("get_wound_size", &NlcConditionFields::GetWoundSize)
+			.def("get_wound_total_size", &NlcConditionFields::GetWoundTotalSize)
 			.def("AddWound", &CEntityCondition::AddWound)
 			.def("ClearWounds", &CEntityCondition::ClearWounds)
 			.def("GetWhoHitLastTimeID", &CEntityCondition::GetWhoHitLastTimeID)
@@ -102,6 +174,21 @@ void CActorCondition::script_register(lua_State *L)
 			.def("ChangeEntityMorale", &CEntityCondition::ChangeEntityMorale)
 			.def("ChangeBleeding", &CEntityCondition::ChangeBleeding)
 			.def("BleedingSpeed", &CEntityCondition::BleedingSpeed)
+			.property("health", &NlcConditionFields::GetHealth, &NlcConditionFields::SetHealth)
+			.property("health_max", &NlcConditionFields::GetMaxHealth, &NlcConditionFields::SetMaxHealth)
+			.property("max_health", &NlcConditionFields::GetMaxHealth, &NlcConditionFields::SetMaxHealth)
+			.property("power", &NlcConditionFields::GetPower, &NlcConditionFields::SetPower)
+			.property("power_max", &NlcConditionFields::GetMaxPower, &NlcConditionFields::SetMaxPower)
+			.property("radiation", &NlcConditionFields::GetRadiation, &NlcConditionFields::SetRadiation)
+			.property("psy_health", &NlcConditionFields::GetPsyHealth, &NlcConditionFields::SetPsyHealth)
+			.property("radiation_v", &NlcConditionFields::GetChange<&SConditionChangeV::m_fV_Radiation>, &NlcConditionFields::SetChange<&SConditionChangeV::m_fV_Radiation>)
+			.property("psy_health_v", &NlcConditionFields::GetChange<&SConditionChangeV::m_fV_PsyHealth>, &NlcConditionFields::SetChange<&SConditionChangeV::m_fV_PsyHealth>)
+			.property("circumspection_v", &NlcConditionFields::GetChange<&SConditionChangeV::m_fV_Circumspection>, &NlcConditionFields::SetChange<&SConditionChangeV::m_fV_Circumspection>)
+			.property("morale_v", &NlcConditionFields::GetChange<&SConditionChangeV::m_fV_EntityMorale>, &NlcConditionFields::SetChange<&SConditionChangeV::m_fV_EntityMorale>)
+			.property("radiation_health_v", &NlcConditionFields::GetChange<&SConditionChangeV::m_fV_RadiationHealth>, &NlcConditionFields::SetChange<&SConditionChangeV::m_fV_RadiationHealth>)
+			.property("bleeding_v", &NlcConditionFields::GetChange<&SConditionChangeV::m_fV_Bleeding>, &NlcConditionFields::SetChange<&SConditionChangeV::m_fV_Bleeding>)
+			.property("wound_incarnation_v", &NlcConditionFields::GetChange<&SConditionChangeV::m_fV_WoundIncarnation>, &NlcConditionFields::SetChange<&SConditionChangeV::m_fV_WoundIncarnation>)
+			.property("health_restore_v", &NlcConditionFields::GetChange<&SConditionChangeV::m_fV_HealthRestore>, &NlcConditionFields::SetChange<&SConditionChangeV::m_fV_HealthRestore>)
 			.enum_("EBoostParams")
 			[
 				value("eBoostHpRestore", int(EBoostParams::eBoostHpRestore)),
@@ -153,6 +240,25 @@ void CActorCondition::script_register(lua_State *L)
 			.def_readwrite("m_fAccelK", &CActorCondition::m_fAccelK)
 			.def_readwrite("m_fSprintK", &CActorCondition::m_fSprintK)
 			.def_readwrite("m_condition_flags", &CActorCondition::m_condition_flags)
+			.property("satiety", &NlcConditionFields::GetSatiety, &NlcConditionFields::SetSatiety)
+			.property("satiety_v", &NlcConditionFields::GetSatietyV, &NlcConditionFields::SetSatietyV)
+			.property("satiety_health_v", &NlcConditionFields::GetSatietyHealthV, &NlcConditionFields::SetSatietyHealthV)
+			.property("alcohol_health", &NlcConditionFields::GetAlcohol, &NlcConditionFields::SetAlcohol)
+			.property("alcohol_v", &NlcConditionFields::GetAlcoholV, &NlcConditionFields::SetAlcoholV)
+			.def_readwrite("max_power_leak_speed", &CActorCondition::m_fPowerLeakSpeed)
+			.def_readwrite("jump_power", &CActorCondition::m_fJumpPower)
+			.def_readwrite("stand_power", &CActorCondition::m_fStandPower)
+			.def_readwrite("walk_power", &CActorCondition::m_fWalkPower)
+			.def_readwrite("jump_weight_power", &CActorCondition::m_fJumpWeightPower)
+			.def_readwrite("walk_weight_power", &CActorCondition::m_fWalkWeightPower)
+			.def_readwrite("overweight_walk_k", &CActorCondition::m_fOverweightWalkK)
+			.def_readwrite("overweight_jump_k", &CActorCondition::m_fOverweightJumpK)
+			.def_readwrite("accel_k", &CActorCondition::m_fAccelK)
+			.def_readwrite("sprint_k", &CActorCondition::m_fSprintK)
+			.def_readwrite("max_walk_weight", &CActorCondition::m_MaxWalkWeight)
+			.property("limping", &NlcConditionFields::IsLimping)
+			.property("cant_walk", &NlcConditionFields::IsCantWalk)
+			.property("cant_sprint", &NlcConditionFields::IsCantSprint)
 			.enum_("condition_flags")
 			[
 				value("eCriticalPowerReached", int(CActorCondition::eCriticalPowerReached)),

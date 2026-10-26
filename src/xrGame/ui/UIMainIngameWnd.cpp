@@ -914,7 +914,7 @@ void CUIMainIngameWnd::Update()
 		}
 	}
 
-	if (!useLegacyIndicators)
+	if (!useLegacyIndicators || ExternalIconControl)
 		return;
 
 	EWarningIcons i = ewiWeaponJammed;
@@ -1224,6 +1224,31 @@ void CUIMainIngameWnd::SetWarningIconColor(EWarningIcons icon, const u32 cl)
 	default:
 		R_ASSERT(!"Unknown warning icon type");
 	}
+}
+
+bool CUIMainIngameWnd::SetupGameIcon(u32 Icon, u32 Color, float Width, float Height)
+{
+	CUIStatic* Icons[] = { nullptr, UIWeaponJammedIcon, UIRadiaitionIcon, UIWoundIcon, UIStarvationIcon, UIPsyHealthIcon, UIInvincibleIcon, UIArtefactIcon };
+	Icon &= 7;
+
+	CUIStatic* IconStatic = Icons[Icon];
+	if (IconStatic == nullptr)
+	{
+		return false;
+	}
+
+	if (Width > 0.0f && Height > 0.0f)
+	{
+		IconStatic->SetWndSize(Fvector2().set(Width, Height));
+		IconStatic->SetStretchTexture(Color > 0);
+	}
+	else
+	{
+		SetWarningIconColor(EWarningIcons(Icon), Color);
+	}
+
+	ExternalIconControl = true;
+	return true;
 }
 
 void CUIMainIngameWnd::TurnOffWarningIcon(EWarningIcons icon)

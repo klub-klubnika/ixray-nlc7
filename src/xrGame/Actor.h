@@ -509,6 +509,7 @@ public:
 
 	CCameraBase*	cam_Active			() override	{return cameras[cam_active];}
 	IC CCameraBase*			cam_FirstEye		() const {return cameras[eacFirstEye];}
+	IC CCameraBase*			cam_ByIndex			(u16 index) const {return index < eacMaxCam ? cameras[index] : nullptr;}
 	IC EActorCameras active_cam() const { return cam_active; }
 	virtual void cam_Set(EActorCameras style);
 
@@ -964,6 +965,7 @@ public:
 	void						OnDifficultyChanged				();
 
 	IC float					HitProbability					() const {return m_hit_probability;}
+	IC void						SetHitProbability				(float value) {m_hit_probability = value;}
 	CVisualMemoryManager*visual_memory					() const override;
 
 	virtual bool				BonePassBullet					(u16 boneID) final override;

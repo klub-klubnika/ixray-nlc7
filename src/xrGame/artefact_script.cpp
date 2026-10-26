@@ -10,13 +10,34 @@
 
 using namespace luabind;
 
+namespace ArtefactScript
+{
+	float GetHealth(CArtefact* Artefact) { return Artefact->GetHealthPower(); }
+	void SetHealth(CArtefact* Artefact, float Value) { Artefact->SetHealthPower(Value); }
+	float GetRadiation(CArtefact* Artefact) { return Artefact->GetRadiationPower(); }
+	void SetRadiation(CArtefact* Artefact, float Value) { Artefact->SetRadiationPower(Value); }
+	float GetSatiety(CArtefact* Artefact) { return Artefact->GetSatietyPower(); }
+	void SetSatiety(CArtefact* Artefact, float Value) { Artefact->SetSatietyPower(Value); }
+	float GetPower(CArtefact* Artefact) { return Artefact->GetPowerPower(); }
+	void SetPower(CArtefact* Artefact, float Value) { Artefact->SetPowerPower(Value); }
+	float GetBleeding(CArtefact* Artefact) { return Artefact->GetBleedingPower(); }
+	void SetBleeding(CArtefact* Artefact, float Value) { Artefact->SetBleedingPower(Value); }
+	float GetAdditionalWeight(CArtefact* Artefact) { return Artefact->AdditionalInventoryWeight(); }
+}
+
 #pragma optimize("s",on)
 void CArtefact::script_register(lua_State *L)
 {
 	module(L)
 	[
-		class_<CArtefact ,CGameObject>("CArtefact")
+		class_<CArtefact, bases<CGameObject, CInventoryItem>>("CArtefact")
 			.def(constructor<>())
+			.property("health_restore_speed", &ArtefactScript::GetHealth, &ArtefactScript::SetHealth)
+			.property("radiation_restore_speed", &ArtefactScript::GetRadiation, &ArtefactScript::SetRadiation)
+			.property("satiety_restore_speed", &ArtefactScript::GetSatiety, &ArtefactScript::SetSatiety)
+			.property("power_restore_speed", &ArtefactScript::GetPower, &ArtefactScript::SetPower)
+			.property("bleeding_restore_speed", &ArtefactScript::GetBleeding, &ArtefactScript::SetBleeding)
+			.property("additional_inventory_weight", &ArtefactScript::GetAdditionalWeight)
 			.def("FollowByPath", &CArtefact::FollowByPath)
 			.def("SwitchVisibility", &CArtefact::SwitchVisibility)
 			.def("GetAfRank", &CArtefact::GetAfRank)

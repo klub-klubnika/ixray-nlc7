@@ -638,6 +638,12 @@ public:
 	IC float				GetRTZoomFactor		() const		{return m_fRTZoomFactor;}
 
 	IC void					SetZoomFactor		(float f) 		{m_zoom_params.m_fCurrentZoomFactor = f;}
+	IC float				GetScopeZoomFactor	() const		{return m_zoom_params.m_fScopeZoomFactor;}
+	IC void					SetScopeZoomFactor	(float f)		{m_zoom_params.m_fScopeZoomFactor = f;}
+	IC float				GetIronSightZoomFactor() const		{return m_zoom_params.m_fIronSightZoomFactor;}
+	IC void					SetIronSightZoomFactor(float f)		{m_zoom_params.m_fIronSightZoomFactor = f;}
+	void					ScriptFireStart		()				{FireStart();}
+	void					ScriptFireEnd		()				{FireEnd();}
 
 	virtual	float			CurrentZoomFactor	();
 	//показывает, что оружие находится в соостоянии поворота для приближенного прицеливания

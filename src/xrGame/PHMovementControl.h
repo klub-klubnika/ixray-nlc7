@@ -53,6 +53,7 @@ Fvector					PHCaptureGetNearestElemPos( const CPhysicsShellHolder* object );
 Fmatrix					PHCaptureGetNearestElemTransform( CPhysicsShellHolder* object );
 void					SetMaterial( u16 material );
 void					SetAirControlParam( float param ){ fAirControlParam=param; }
+float					GetAirControlParam() const { return fAirControlParam; }
 void					SetActorRestrictorRadius( ERestrictionType rt, float r );
 void					SetRestrictionType( ERestrictionType rt);
 void					SetActorMovable( bool v );

@@ -41,8 +41,10 @@ void CWeaponAmmo::script_register(lua_State *L)
 			]
 			.def("GetInventoryName", &CCartridge::GetInventoryName)
 			,
-			class_<CWeaponAmmo, CGameObject>("CWeaponAmmo")
+			class_<CWeaponAmmo, bases<CGameObject, CInventoryItem>>("CWeaponAmmo")
 			.def(constructor<>())
+			.def_readwrite("current", &CWeaponAmmo::m_boxCurr)
+			.def_readwrite("size", &CWeaponAmmo::m_boxSize)
 			.def_readwrite("m_boxSize", &CWeaponAmmo::m_boxSize)
 			.def_readwrite("m_boxCurr", &CWeaponAmmo::m_boxCurr)
 			.def_readwrite("m_tracer", &CWeaponAmmo::m_tracer)

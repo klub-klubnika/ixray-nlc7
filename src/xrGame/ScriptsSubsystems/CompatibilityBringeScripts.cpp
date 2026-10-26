@@ -6,7 +6,81 @@
 #include "../../xrServerEntities/xrServer_Objects_ALife.h"
 #include "script_game_object.h"
 
+#include "Actor.h"
+#include "WeaponMagazinedWGrenade.h"
+#include "WeaponAmmo.h"
+#include "Artefact.h"
+#include "CustomOutfit.h"
+#include "eatable_item.h"
+#include "InventoryContainer.h"
+#include "ui/UIGameCustom.h"
+#include "ui/UIMainIngameWnd.h"
+#include "../../xrEngine/EngineApp.h"
+#include "ai_space.h"
+#include "../../xrScripts/script_engine.h"
+
 #include <luabind/luabind.hpp>
+
+luabind::object ToEngineObject(CGameObject* Object)
+{
+	lua_State* L = ai().script_engine().lua();
+	if (Object == nullptr)
+	{
+		return luabind::object();
+	}
+
+	if (CActor* Actor = smart_cast<CActor*>(Object))
+		return luabind::object(L, Actor);
+	if (CWeaponMagazinedWGrenade* Weapon = smart_cast<CWeaponMagazinedWGrenade*>(Object))
+		return luabind::object(L, Weapon);
+	if (CWeaponMagazined* Weapon = smart_cast<CWeaponMagazined*>(Object))
+		return luabind::object(L, Weapon);
+	if (CWeapon* Weapon = smart_cast<CWeapon*>(Object))
+		return luabind::object(L, Weapon);
+	if (CWeaponAmmo* Ammo = smart_cast<CWeaponAmmo*>(Object))
+		return luabind::object(L, Ammo);
+	if (CArtefact* Artefact = smart_cast<CArtefact*>(Object))
+		return luabind::object(L, Artefact);
+	if (CCustomOutfit* Outfit = smart_cast<CCustomOutfit*>(Object))
+		return luabind::object(L, Outfit);
+	if (CInventoryContainer* Container = smart_cast<CInventoryContainer*>(Object))
+		return luabind::object(L, Container);
+	if (CEatableItem* Eatable = smart_cast<CEatableItem*>(Object))
+		return luabind::object(L, Eatable);
+	if (CInventoryItem* Item = smart_cast<CInventoryItem*>(Object))
+		return luabind::object(L, Item);
+
+	return luabind::object(L, Object);
+}
+
+static bool SetupGameIcon(u32 Icon, u32 Color, float Width, float Height)
+{
+	CUIGameCustom* GameUI = CurrentGameUI();
+	if (GameUI == nullptr || GameUI->UIMainIngameWnd == nullptr)
+	{
+		return false;
+	}
+	return GameUI->UIMainIngameWnd->SetupGameIcon(Icon, Color, Width, Height);
+}
+
+static CEngineApp* GetApplication() { return pApp; }
+static void SetLoadTexture(CEngineApp* App, const char* Texture) { App->SetScriptLoadTexture(Texture); }
+
+static luabind::object EngineObject(luabind::object Target)
+{
+	if (Target.type() == LUA_TNUMBER)
+	{
+		const u16 ID = luabind::object_cast<u16>(Target);
+		return ToEngineObject(smart_cast<CGameObject*>(Level().Objects.net_Find(ID)));
+	}
+
+	if (CScriptGameObject* ScriptObject = luabind::object_cast_nothrow<CScriptGameObject*>(Target).value_or(nullptr))
+	{
+		return ToEngineObject(&ScriptObject->object());
+	}
+
+	return luabind::object();
+}
 
 float SimDistTo(luabind::object Left, luabind::object Right)
 {
@@ -108,8 +182,15 @@ void CompatibilityBringeExport(lua_State* L)
 
 	luabind::module(L)
 	[
-		luabind::def("game_vertex_by_level_vertex", GameVertexByLevelVertex)
+		luabind::def("game_vertex_by_level_vertex", GameVertexByLevelVertex),
+		luabind::def("engine_object", EngineObject),
+		luabind::def("setup_game_icon", SetupGameIcon),
+		luabind::class_<CEngineApp>("CApplication")
+			.def("set_load_texture", &SetLoadTexture),
+		luabind::def("get_application", GetApplication)
 	];
+
+	luabind::get_globals(L)["SRotation"] = luabind::get_globals(L)["rotation"];
 
 	luabind::object script_events = luabind::get_globals(L)["script_events"];
 	script_events["M_SCRIPT_EVENT"] = M_SCRIPT_EVENT;

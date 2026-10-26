@@ -6,6 +6,7 @@
 
 #include "UIGameCustom.h"
 #include "ui/UIInventoryWnd.h"
+#include "ui/UIActorMenu.h"
 #include "ui/UIScriptWnd.h"
 #include "../xrUI/Widgets/UIButton.h"
 #include "../xrUI/Widgets/UIProgressBar.h"
@@ -54,7 +55,42 @@ bool is_widescreen()
 CUIDialogWnd* get_inventory_wnd()
 {
 	CUIGameCustom* gameUi = CurrentGameUI();
-	return gameUi != nullptr ? gameUi->InventoryWnd() : nullptr;
+	if (gameUi == nullptr)
+	{
+		return nullptr;
+	}
+
+	if (gameUi->ActorMenu() != nullptr)
+	{
+		return gameUi->ActorMenu();
+	}
+
+	return gameUi->InventoryWnd();
+}
+
+void start_dialog(CUIDialogWnd* Dialog, bool HideIndicators)
+{
+	CUIGameCustom* gameUi = CurrentGameUI();
+	if (Dialog == nullptr || gameUi == nullptr || Dialog->IsShown())
+	{
+		return;
+	}
+
+	if (Dialog == get_inventory_wnd())
+	{
+		gameUi->ShowActorMenu();
+		return;
+	}
+
+	Dialog->ShowDialog(HideIndicators);
+}
+
+void stop_dialog(CUIDialogWnd* Dialog)
+{
+	if (Dialog != nullptr && Dialog->IsShown())
+	{
+		Dialog->HideDialog();
+	}
 }
 
 const char* gamepad_prefix()
@@ -134,6 +170,8 @@ void UIRegistrator::script_register(lua_State *L)
 		def("is_widescreen",				&is_widescreen),
 		def("gamepad_prefix",				&gamepad_prefix),
 		def("get_inventory_wnd",			&get_inventory_wnd),
+		def("start_dialog",					&start_dialog),
+		def("stop_dialog",					&stop_dialog),
 		def("QueryScrollBarProfileLayout",	&QueryScrollBarProfileLayout_script)
 	];
 

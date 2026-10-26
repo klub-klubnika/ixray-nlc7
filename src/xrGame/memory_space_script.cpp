@@ -16,6 +16,31 @@
 
 using namespace luabind;
 
+namespace RotationScript
+{
+	Fvector GetDir(SRotation* Rotation, bool InversePitch)
+	{
+		Fvector Result;
+		Result.setHP(Rotation->yaw, InversePitch ? -Rotation->pitch : Rotation->pitch);
+		return Result;
+	}
+
+	void SetDir(SRotation* Rotation, const Fvector& Direction, bool InversePitch)
+	{
+		Rotation->yaw = Direction.getH();
+		Rotation->pitch = InversePitch ? -Direction.getP() : Direction.getP();
+		Rotation->roll = 0.0f;
+	}
+
+	void Copy(SRotation* Rotation, const SRotation* Source) { *Rotation = *Source; }
+
+	void Set(SRotation* Rotation, float Yaw, float Pitch, float Roll)
+	{
+		Rotation->yaw = Yaw;
+		Rotation->pitch = Pitch;
+		Rotation->roll = Roll;
+	}
+}
 
 ALife::_OBJECT_ID CMemoryObject::object_id(const CObject* object)
 {
@@ -76,8 +101,15 @@ void CMemoryInfo::script_register(lua_State *L)
 	module(L)
 	[
 		class_<SRotation>("rotation")
+			.def(constructor<>())
+			.def(constructor<float, float, float>())
 			.def_readwrite("yaw",			&SRotation::yaw)
-			.def_readwrite("pitch",			&SRotation::pitch),
+			.def_readwrite("pitch",			&SRotation::pitch)
+			.def_readwrite("roll",			&SRotation::roll)
+			.def("get_dir",					&RotationScript::GetDir)
+			.def("set_dir",					&RotationScript::SetDir)
+			.def("set",						&RotationScript::Copy)
+			.def("set",						&RotationScript::Set),
 			
 		class_<MemorySpace::SObjectParams>("object_params")
 			.def_readonly("level_vertex",	&MemorySpace::SObjectParams::m_level_vertex_id)

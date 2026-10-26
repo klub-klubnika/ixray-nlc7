@@ -201,6 +201,10 @@ public:
 
 	bool IsQuestItem() const { return m_flags.test(FIsQuestItem); }
 	virtual	u32 Cost() const { return m_cost; }
+	void SetCost(u32 value) { m_cost = value; }
+	u16 GetItemFlags() const { return m_flags.get(); }
+	void SetItemFlags(u16 value) { m_flags.assign(value); }
+	void SetQuestItem(bool value) { m_flags.set(FIsQuestItem, value); }
 	void setCost(u32 nValue);
 
 	virtual float Weight() const { return m_weight; }

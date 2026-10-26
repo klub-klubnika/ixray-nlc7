@@ -210,6 +210,9 @@ public:
 	// Задаем цвет соответствующей иконке
 	void				SetWarningIconColor(EWarningIcons icon, const u32 cl);
 	void				TurnOffWarningIcon(EWarningIcons icon);
+	bool				SetupGameIcon(u32 Icon, u32 Color, float Width, float Height);
+
+	bool				ExternalIconControl = false;
 
 	// Пороги изменения цвета индикаторов, загружаемые из system.ltx
 	typedef				xr_map<EWarningIcons, xr_vector<float> >	Thresholds;

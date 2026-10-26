@@ -4,7 +4,48 @@
 #include "GameObject.h"
 #include "Inventory.h"
 #include "inventory_space.h"
+#include "inventory_item.h"
+#include "Level.h"
 using namespace luabind;
+
+namespace InventoryScript
+{
+	PIItem FindItem(u16 ItemID)
+	{
+		return smart_cast<PIItem>(Level().Objects.net_Find(ItemID));
+	}
+
+	void ToBelt(CInventory* Inventory, u16 ItemID)
+	{
+		if (PIItem Item = FindItem(ItemID))
+		{
+			Inventory->Belt(Item);
+		}
+	}
+
+	void ToSlot(CInventory* Inventory, u16 ItemID, bool NotActivate)
+	{
+		if (PIItem Item = FindItem(ItemID))
+		{
+			const u16 FreeSlot = Inventory->FindFreeAllowedSlot(Item);
+			Inventory->Slot(FreeSlot != NO_ACTIVE_SLOT ? FreeSlot : Item->BaseSlot(), Item, NotActivate);
+		}
+	}
+
+	void ToRuck(CInventory* Inventory, u16 ItemID)
+	{
+		if (PIItem Item = FindItem(ItemID))
+		{
+			Inventory->Ruck(Item);
+		}
+	}
+
+	u32 GetMaxBelt(CInventory* Inventory) { return Inventory->BeltWidth(); }
+	void SetMaxBelt(CInventory* Inventory, u32 Value) { Inventory->SetMaxBelt(Value); }
+	float GetMaxWeight(CInventory* Inventory) { return Inventory->GetMaxWeight(); }
+	void SetMaxWeight(CInventory* Inventory, float Value) { Inventory->SetMaxWeight(Value); }
+	float GetTotalWeight(CInventory* Inventory) { return Inventory->TotalWeight(); }
+}
 
 #pragma optimize("s",on)
 void CInventoryOwner::script_register(lua_State *L)
@@ -24,6 +65,12 @@ void CInventoryOwner::script_register(lua_State *L)
 			.def("InBelt", &CInventory::InBelt)
 			.def("InRuck", &CInventory::InRuck)
 			.def("ItemFromSlot", &CInventory::ItemFromSlot)
+			.property("max_belt", &InventoryScript::GetMaxBelt, &InventoryScript::SetMaxBelt)
+			.property("max_weight", &InventoryScript::GetMaxWeight, &InventoryScript::SetMaxWeight)
+			.property("total_weight", &InventoryScript::GetTotalWeight)
+			.def("to_belt", &InventoryScript::ToBelt)
+			.def("to_slot", &InventoryScript::ToSlot)
+			.def("to_ruck", &InventoryScript::ToRuck)
 			.enum_("slots")
 			[
 				luabind::value("NO_ACTIVE_SLOT", NO_ACTIVE_SLOT),
