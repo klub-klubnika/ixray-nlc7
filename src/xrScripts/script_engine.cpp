@@ -141,6 +141,21 @@ int auto_load(lua_State* L)
 	return 1;
 }
 
+namespace ScriptListPriority
+{
+	int AddonPriority(const char* Path)
+	{
+		const CLocatorAPI::file* File = FS.exist(Path);
+		if (File == nullptr || File->wrap == nullptr || GAddonsManager == nullptr)
+		{
+			return 0;
+		}
+
+		const CAddonManager::AddonInfo* Addon = GAddonsManager->FindAddon(*File);
+		return Addon != nullptr ? static_cast<int>(Addon - GAddonsManager->Addons.data()) + 1 : 0;
+	}
+}
+
 void CScriptEngine::setup_auto_load		()
 {
 	luaL_newmetatable					(lua(),"XRAY_AutoLoadMetaTable");
@@ -169,9 +184,16 @@ void CScriptEngine::setup_auto_load		()
 		FS.update_path(fn1, "$game_scripts$", fn1);
 		xr_strconcat(fn1, fn1, fn2, ".script");
 
-		if (!xray_scripts.contains(xr_string(fn2)))
+		auto It = xray_scripts.find(xr_string(fn2));
+		if (It == xray_scripts.end())
 		{
 			xray_scripts[fn2] = fn1;
+			continue;
+		}
+
+		if (ScriptListPriority::AddonPriority(fn1) > ScriptListPriority::AddonPriority(It->second.c_str()))
+		{
+			It->second = fn1;
 			continue;
 		}
 
