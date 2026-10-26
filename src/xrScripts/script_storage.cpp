@@ -32,7 +32,53 @@ setfenv(1, this) \
 #	define NO_XRGAME_SCRIPT_ENGINE
 #endif
 
-CScriptStorage::CScriptStorage() : 
+namespace ScriptStorageClose
+{
+	void RemoveGc(lua_State* L, int MetatableRef)
+	{
+		lua_rawgeti(L, LUA_REGISTRYINDEX, MetatableRef);
+		if (lua_istable(L, -1))
+		{
+			lua_pushstring(L, "__gc");
+			lua_pushnil(L);
+			lua_rawset(L, -3);
+		}
+		lua_pop(L, 1);
+	}
+
+	// Collects garbage while every luabind class is alive, then removes __gc from the class_rep
+	// metatables and from the script class instance metatable
+	int PrepareClose(lua_State* L)
+	{
+		lua_gc(L, LUA_GCCOLLECT, 0);
+
+		if (const luabind::detail::class_registry* Registry = luabind::detail::class_registry::get_registry(L))
+		{
+			RemoveGc(L, Registry->cpp_class());
+			RemoveGc(L, Registry->lua_class());
+			RemoveGc(L, Registry->lua_instance());
+		}
+
+		return 0;
+	}
+
+	// HACK: lua_close finalizes userdata in arbitrary order. A class_rep can be destroyed before the
+	// instances that luabind::detail::finalize reads it from, and a script __finalize can index another
+	// script instance that is already finalized. Class reps and script class instances are left to leak
+	// instead; C++ class instances are still destroyed.
+	void Close(lua_State* L)
+	{
+		if (lua_cpcall(L, &PrepareClose, nullptr) != 0)
+		{
+			Msg("! Script storage close error: %s", lua_isstring(L, -1) ? lua_tostring(L, -1) : "?");
+			lua_pop(L, 1);
+		}
+
+		lua_close(L);
+	}
+}
+
+CScriptStorage::CScriptStorage() :
 	m_jit(false)
 {
 	m_current_thread = nullptr;
@@ -42,14 +88,14 @@ CScriptStorage::CScriptStorage() :
 CScriptStorage::~CScriptStorage()
 {
 	if (m_virtual_machine)
-		lua_close(m_virtual_machine);
+		ScriptStorageClose::Close(m_virtual_machine);
 }
 
 void CScriptStorage::reinit	()
 {
 	if (m_virtual_machine)
 	{
-		lua_close(m_virtual_machine);
+		ScriptStorageClose::Close(m_virtual_machine);
 	}
 
 	m_virtual_machine		= luaL_newstate();
