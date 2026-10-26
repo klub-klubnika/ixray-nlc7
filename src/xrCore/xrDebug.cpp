@@ -701,6 +701,38 @@ void xrDebug::_initialize(bool dedicated)
 	*g_bug_report_file = 0;
 #ifdef IXR_WINDOWS
 	previous_filter = ::SetUnhandledExceptionFilter(UnhandledFilter);	// exception handler to all "unhandled" exceptions
+	if (strstr(GetCommandLineA(), "-log_cpp_throw"))
+	{
+		AddVectoredExceptionHandler(1, [](PEXCEPTION_POINTERS Info) -> LONG
+		{
+			static volatile LONG FatalLogged = 0;
+			DWORD Code = Info->ExceptionRecord->ExceptionCode;
+			if ((Code == EXCEPTION_ACCESS_VIOLATION || Code == EXCEPTION_STACK_OVERFLOW) && InterlockedExchange(&FatalLogged, 1) == 0)
+			{
+				Msg("! Fatal exception 0x%08X at %p", Code, Info->ExceptionRecord->ExceptionAddress);
+				CONTEXT Saved = *Info->ContextRecord;
+				std::vector<std::string> Trace = StackTrace::BuildStackTrace(Info->ContextRecord, 48);
+				*Info->ContextRecord = Saved;
+				for (const std::string& Line : Trace)
+				{
+					Msg("  %s", Line.c_str());
+				}
+				xrLogger::FlushLog();
+			}
+			if (Code == 0xE06D7363 && strstr(GetCommandLineA(), "-log_cpp_throw_all"))
+			{
+				CONTEXT Saved = *Info->ContextRecord;
+				std::vector<std::string> Trace = StackTrace::BuildStackTrace(Info->ContextRecord, 64);
+				*Info->ContextRecord = Saved;
+				Msg("! C++ exception thrown, stack:");
+				for (const std::string& Line : Trace)
+				{
+					Msg("  %s", Line.c_str());
+				}
+			}
+			return EXCEPTION_CONTINUE_SEARCH;
+		});
+	}
 #endif
 }
 
