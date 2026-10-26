@@ -59,5 +59,8 @@ public:
 	void SetScale(float Scale);
 	float GetScale() const;
 
+	// Current particle position (last move_to / play_at_pos)
+	Fvector LastPosition() const { return m_particles ? m_particles->XFORM().c : Fvector().set(0.0f, 0.0f, 0.0f); }
+
 	DECLARE_SCRIPT_REGISTER_FUNCTION
 };

@@ -49,6 +49,8 @@
 #include "ActorCondition.h"
 #include "alife_simulator.h"
 #include "alife_object_registry.h"
+#include "PhysicsShellHolder.h"
+#include "../xrPhysics/PhysicsShell.h"
 
 using namespace luabind;
 
@@ -151,6 +153,36 @@ namespace NlcGameObjectScript
 	const char* GetLevelName(CScriptGameObject* Object)
 	{
 		return ai().game_graph().header().level(GameGraph::_LEVEL_ID(GetLevelID(Object))).name().c_str();
+	}
+
+	// Turns the object keeping its position (NLC set_rotation)
+	void SetRotation(CScriptGameObject* Object, const SRotation& Rotation)
+	{
+		CGameObject& GameObject = Object->object();
+		if (CActor* Actor = smart_cast<CActor*>(&GameObject))
+		{
+			Actor->Orientation() = Rotation;
+			return;
+		}
+
+		Fmatrix Xform = Fidentity;
+		Xform.setHPB(Rotation.yaw, Rotation.pitch, Rotation.roll);
+		Xform.c = GameObject.Position();
+
+		CPhysicsShellHolder* ShellHolder = smart_cast<CPhysicsShellHolder*>(&GameObject);
+		if (ShellHolder != nullptr && ShellHolder->PPhysicsShell() != nullptr)
+		{
+			ShellHolder->PPhysicsShell()->SetTransform(Xform, mh_unspecified);
+		}
+		GameObject.XFORM() = Xform;
+
+		if (ai().get_alife())
+		{
+			if (CSE_ALifeDynamicObject* ServerObject = ai().alife().objects().object(Object->ID(), true))
+			{
+				Xform.getXYZ(ServerObject->angle());
+			}
+		}
 	}
 }
 
@@ -1119,6 +1151,7 @@ void CScriptGameObject::script_register(lua_State *L)
 			.def("get_base_monster", &CScriptGameObject::cast_Monster)
 			.def("get_interface", &NlcGameObjectScript::GetInterface)
 			.def("set_section", &NlcGameObjectScript::SetSection)
+			.def("set_rotation", &NlcGameObjectScript::SetRotation)
 			.property("inventory", &NlcGameObjectScript::GetInventory)
 			.property("conditions", &NlcGameObjectScript::GetConditions)
 			.property("immunities", &NlcGameObjectScript::GetImmunities)
