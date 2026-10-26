@@ -1070,6 +1070,20 @@ void CGamePersistent::SetLoadStageTitle(const char* ls_title)
 	string256 buff;
 	if (ls_title)
 	{
+		// Mods can react to load stages (NLC switches the loading picture in _G.on_load_title)
+		luabind::functor<void> StageHook;
+		if (g_pScriptEngine != nullptr && ls_title[0] != '\0' && ai().script_engine().functor("on_load_title", StageHook))
+		{
+			try
+			{
+				StageHook(ls_title);
+			}
+			catch (...)
+			{
+				Msg("! on_load_title failed for stage [%s]", ls_title);
+			}
+		}
+
 		xr_sprintf(buff, "%s%s", g_pStringTable->translate(ls_title).c_str(), "...");
 		pApp->SetLoadStageTitle(buff);
 	}
