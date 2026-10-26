@@ -20,6 +20,7 @@
 #	include "FreeMP/ScriptEvents.h"
 #	include "PHSimpleCalls.h"
 #	include "eatable_item.h"
+#	include "InventoryContainer.h"
 #	include "RadioactiveZone.h"
 #	include "ZoneCampfire.h"
 #	include "alife_online_offline_group_brain.h"
@@ -256,6 +257,7 @@ void export_classes	(lua_State *L)
 	CUIActorMenu::script_register(L);
 	ScriptEvent::script_register(L);
 	CInventoryBox::script_register(L);
+	CInventoryContainer::script_register(L);
 	CActorCondition::script_register(L);
 	CAntirad::script_register(L);
 	CBottleItem::script_register(L);

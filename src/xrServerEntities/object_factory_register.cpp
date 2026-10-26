@@ -169,6 +169,7 @@
 #	include "space_restrictor.h"
 #	include "smart_zone.h"
 #	include "InventoryBox.h"
+#	include "InventoryContainer.h"
 
 #	include "actor_mp_server.h"
 #	include "actor_mp_client.h"
@@ -363,6 +364,7 @@ void CObjectFactory::register_classes	()
 	//Info Document
 	ADD(CInfoDocument			,CSE_ALifeItemDocument			,CLSID_IITEM_DOCUMENT			,"obj_document");
 	ADD(CInventoryItemObject	,CSE_ALifeItem					,CLSID_IITEM_ATTACH				,"obj_attachable");
+	ADD(CInventoryContainer		,CSE_ALifeItem					,TEXT2CLSID("O_CONTNR")			,"inventory_container");
 
 	ADD(CInteractiveObject		,CSE_ALifeDynamicObjectVisual   ,CLSID_INTERACTIVE_OBJ			,"obj_interactive_object");
 

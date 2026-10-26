@@ -59,6 +59,7 @@ namespace doors { class door; }
 
 class NET_Packet;
 class CGameTask;
+class CInventoryContainer;
 
 namespace MemorySpace {
 	struct CMemoryInfo;
@@ -440,6 +441,7 @@ public:
 
 			CScriptGameObject	*GetObjectByName	(const char* caObjectName) const;
 			CScriptGameObject	*GetObjectByIndex	(int iIndex) const;
+			CInventoryContainer	*GetContainer		() const;
 
 			
 	// Callbacks			

@@ -20,6 +20,7 @@
 #include "Weapon.h"
 #include "Inventory.h"
 #include "AnomalyZone.h"
+#include "InventoryContainer.h"
 #include "patrol_path_manager.h"
 #include "memory_manager.h"
 #include "visual_memory_manager.h"
@@ -1213,6 +1214,11 @@ u32	CScriptGameObject::GetInventoryObjectCount() const
 		return (l_tpInventoryOwner->inventory().dwfGetObjectCount());
 	}
 
+	if (CInventoryContainer* container = smart_cast<CInventoryContainer*>(&object()))
+	{
+		return container->ItemsCount();
+	}
+
 	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CScriptGameObject : cannot access class member obj_count!");
 	return 0;
 }
@@ -1252,6 +1258,11 @@ CScriptGameObject* CScriptGameObject::GetObjectByName(const char* caObjectName) 
 		}
 	}
 
+	if (CInventoryContainer* container = smart_cast<CInventoryContainer*>(&object()))
+	{
+		return container->ItemByName(caObjectName);
+	}
+
 	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CScriptGameObject : cannot access class member object!");
 	return 0;
 }
@@ -1273,8 +1284,18 @@ CScriptGameObject* CScriptGameObject::GetObjectByIndex(int iIndex) const
 		}
 	}
 
+	if (CInventoryContainer* container = smart_cast<CInventoryContainer*>(&object()))
+	{
+		return iIndex < 0 ? nullptr : container->ItemByIndex(static_cast<u32>(iIndex));
+	}
+
 	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CScriptGameObject : cannot access class member object!");
 	return 0;
+}
+
+CInventoryContainer* CScriptGameObject::GetContainer() const
+{
+	return smart_cast<CInventoryContainer*>(&object());
 }
 
 void CScriptGameObject::EnableAnomaly()

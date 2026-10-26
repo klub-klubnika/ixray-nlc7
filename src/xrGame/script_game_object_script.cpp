@@ -27,6 +27,8 @@
 #include "detail_path_manager_space.h"
 #include "patrol_path_manager_space.h"
 #include "InventoryOwner.h"
+#include "InventoryContainer.h"
+#include "entity_alive.h"
 #include "pda_space.h"
 #include "memory_space.h"
 #include "physics_shell_scripted.h"
@@ -247,6 +249,7 @@ void CScriptGameObject::script_register(lua_State *L)
 			.def("command",						&CScriptGameObject::AddAction)
 			.def("action",						&CScriptGameObject::GetCurrentAction, adopt<0>())
 			.def("object_count",				&CScriptGameObject::GetInventoryObjectCount)
+			.def("get_container",				&CScriptGameObject::GetContainer)
 			.def("object",						(CScriptGameObject *(CScriptGameObject::*)(const char*))(&CScriptGameObject::GetObjectByName))
 			.def("object",						(CScriptGameObject *(CScriptGameObject::*)(int))(&CScriptGameObject::GetObjectByIndex))
 			.def("active_item",					&CScriptGameObject::GetActiveItem)
