@@ -33,6 +33,46 @@ using namespace ALife;
 
 extern string_path g_last_saved_game;
 
+namespace SaveNameText
+{
+	// True for well-formed UTF-8 that has non-ASCII characters
+	bool IsUtf8NonAscii(const char* Text)
+	{
+		bool HasNonAscii = false;
+		for (const unsigned char* It = reinterpret_cast<const unsigned char*>(Text); *It != 0;)
+		{
+			if (*It < 0x80)
+			{
+				++It;
+				continue;
+			}
+
+			HasNonAscii = true;
+			int Tail = (*It & 0xE0) == 0xC0 ? 1 : (*It & 0xF0) == 0xE0 ? 2 : (*It & 0xF8) == 0xF0 ? 3 : -1;
+			if (Tail < 0)
+			{
+				return false;
+			}
+
+			++It;
+			for (; Tail > 0; --Tail, ++It)
+			{
+				if ((*It & 0xC0) != 0x80)
+				{
+					return false;
+				}
+			}
+		}
+		return HasNonAscii;
+	}
+
+	// Save names come from the file system in UTF-8, UI strings are CP1251
+	xr_string ToUiText(const char* SaveName)
+	{
+		return IsUtf8NonAscii(SaveName) ? Platform::UTF8_to_CP1251(SaveName) : xr_string(SaveName);
+	}
+}
+
 CALifeStorageManager::~CALifeStorageManager()
 {
 }
@@ -267,7 +307,7 @@ bool CALifeStorageManager::load(const char* save_name_no_check)
 	}
 
 	string512					temp;
-	xr_strconcat(temp, g_pStringTable->translate("st_loading_saved_game").c_str(), " \"", save_name, IXRAY_DEF_SAVE_EXTENSION, "\"");
+	xr_strconcat(temp, g_pStringTable->translate("st_loading_saved_game").c_str(), " \"", SaveNameText::ToUiText(save_name).c_str(), IXRAY_DEF_SAVE_EXTENSION, "\"");
 	g_pGamePersistent->SetLoadStageTitle(temp);
 	g_pGamePersistent->LoadTitle();
 
