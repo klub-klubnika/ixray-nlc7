@@ -460,7 +460,7 @@ void CUINewsItemWnd::SetupLegacy(GAME_NEWS_DATA& newsData)
 	if (!_uiCaption && newsData.m_type == GAME_NEWS_DATA::eTalk)
 	{
 		outText = "#";
-		outText += newsData.news_caption.c_str();
+		outText += strstr(newsData.news_caption.c_str(), ":lname_") ? TranslateName(newsData.news_caption.c_str()).c_str() : newsData.news_caption.c_str();
 		outText += "# >> ";
 		outText += xr_string(newsData.news_text.c_str()).substr(19);
 	}
