@@ -36,6 +36,7 @@
 #	include "antigas_filter.h"
 #	include "PowerCell.h"
 #	include "nvg.h"
+#	include "EffectorZoomInertion.h"
 #endif
 
 extern void CompatibilityBringeExport(lua_State*);
@@ -249,6 +250,7 @@ void export_classes	(lua_State *L)
 	CCar::script_register(L);
 
 	CActor::script_register(L);
+	CEffectorZoomInertion::script_register(L);
 	CEatableItem::script_register(L);
 	
 	CALifeMonsterBrain::script_register(L);

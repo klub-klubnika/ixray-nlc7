@@ -45,4 +45,8 @@ public:
 	virtual	void	Init				(CWeaponMagazined*	pWeapon);
 
 	virtual CEffectorZoomInertion*		cast_effector_zoom_inertion	()	{return this;}
+
+	static bool ExternalOscillation;
+
+	DECLARE_SCRIPT_REGISTER_FUNCTION
 };
