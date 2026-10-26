@@ -263,11 +263,8 @@ void CActor::g_cl_CheckControls(u32 mstate_wf, Fvector &vControlAccel, float &Ju
 			Jump = m_fJumpSpeed * (1.0f + jump_modifier);
 			if (WeightAffectsMovement)
 			{
-				float PowerFactor = std::clamp(conditions().GetPower() / OverWeightFactor(), 0.3f, 3.0f);
-				if (PowerFactor > 2.0f)
-				{
-					PowerFactor = std::log2(PowerFactor) + 1.0f;
-				}
+				// NLC capped this at 3 with a log curve, which jumps far too high here; 1.5 as in Manool's NLC engine
+				const float PowerFactor = std::clamp(conditions().GetPower() / OverWeightFactor(), 0.3f, 1.5f);
 				Jump *= PowerFactor;
 			}
 			if (Jump < 0.0f)
