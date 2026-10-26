@@ -66,6 +66,7 @@ public:
 		ref_sound								*m_sound;
 		u32										m_start_time;
 		u32										m_stop_time;
+		u32										StopDelay = 0;
 		bool									m_started;
 		u16										m_bone_id;
 
@@ -87,6 +88,7 @@ public:
 		{
 			m_sound->play_at_pos				(object,position);
 			m_started							= true;
+			m_stop_time							= Device.dwTimeGlobal + iFloor(m_sound->get_length_sec()*1000.0f) + StopDelay;
 		}
 
 		IC		bool	started					() const
@@ -108,7 +110,8 @@ public:
 			bool		result = 
 				(sound.m_synchro_mask & m_sound_mask) || 
 				(
-					!sound.m_sound->is_playing() && 
+					sound.started() &&
+					!sound.m_sound->is_playing() &&
 					(sound.m_stop_time <= Device.dwTimeGlobal)
 				);
 			if (result)
