@@ -80,6 +80,12 @@ void CUIInventoryWnd::Init()
 	AttachChild							(&UIDescrWnd);
 	xml_init.InitStatic					(uiXml, "descr_static", 0, &UIDescrWnd);
 
+	AccumStatic							= UIHelper::CreateStatic(uiXml, "accum_static", this, false);
+	if (AccumStatic != nullptr)
+	{
+		AccumTexturePrefix				= uiXml.ReadAttrib("accum_static", 0, "charge_texture_prefix", "");
+	}
+
 	m_ItemInfo							= new CUIItemInfo();
 	UIDescrWnd.AttachChild				(m_ItemInfo);
 	m_ItemInfo->InitItemInfo			(Fvector2().set(0, 0), Fvector2().set(UIDescrWnd.GetWidth(), UIDescrWnd.GetHeight()), INVENTORY_ITEM_XML);
@@ -223,6 +229,17 @@ void CUIInventoryWnd::Update()
 		xr_sprintf						(sMoney,"%u RU", _money);
 		UIMoneyWnd.SetText				(sMoney);
 
+		const float Weight = pOurInvOwner->inventory().CalcTotalWeight();
+		const float MaxWeight = pOurInvOwner->MaxCarryWeight();
+		if (!fsimilar(Weight, ShownWeight) || !fsimilar(MaxWeight, ShownMaxWeight))
+		{
+			ShownWeight = Weight;
+			ShownMaxWeight = MaxWeight;
+			InventoryUtilities::UpdateWeight(UIBagWnd, true);
+		}
+
+		UpdateAccumStatic();
+
 		// update outfit parameters
 		PIItem inv_item = pOurInvOwner->inventory().m_slots[OUTFIT_SLOT].m_pIItem;
 		CCustomOutfit* outfit = inv_item != nullptr ? inv_item->cast_outfit() : nullptr;
@@ -299,8 +316,30 @@ void CUIInventoryWnd::Show(bool status)
 	}
 }
 
+void CUIInventoryWnd::UpdateAccumStatic()
+{
+	if (AccumStatic == nullptr || AccumTexturePrefix.size() == 0)
+	{
+		return;
+	}
+
+	CActor* actor = GetInventoryOwner()->cast_actor();
+	PIItem accum = actor != nullptr ? actor->ArtefactsPowerItem() : nullptr;
+	AccumStatic->Show(accum != nullptr);
+	const int level = accum != nullptr ? iCeil(accum->GetCondition() * 10.0f) * 10 : 0;
+	if (level == AccumShownLevel)
+	{
+		return;
+	}
+
+	AccumShownLevel = level;
+	string_path textureName;
+	xr_sprintf(textureName, "%s%03d", AccumTexturePrefix.c_str(), level);
+	AccumStatic->InitTexture(textureName);
+}
+
 void CUIInventoryWnd::UpdateActor()
-{	
+{
 	if (CActor* actor = GetInventoryOwner()->cast_actor())
 	{
 		if (CWeapon* wp = actor->inventory().ActiveItem() ? actor->inventory().ActiveItem()->cast_weapon() : nullptr)

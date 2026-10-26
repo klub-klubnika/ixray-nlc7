@@ -284,6 +284,8 @@ public:
 			float		GetArtefactMovementSpeedModifier() const;
 	virtual void		MoveArtefactBelt		(const CArtefact* artefact, bool on_belt);
 	const xr_vector<const CArtefact*>& ArtefactsOnBelt() {return m_ArtefactsOnBelt;}
+			bool		ArtefactsHaveEffect		() const;
+			PIItem		ArtefactsPowerItem		() const;
 
 protected:
 	//звук тяжелого дыхания
@@ -307,6 +309,8 @@ protected:
 	ref_sound			m_rainOnHelmetSnd = {};
 
 	xr_vector<const CArtefact*> m_ArtefactsOnBelt;
+	u16					ArtefactsPowerSlot = 0;
+	float				ArtefactsPowerMinCondition = 0.0f;
 
 protected:
 	// Death

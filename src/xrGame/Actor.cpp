@@ -573,6 +573,8 @@ void CActor::Load	(const char* section )
 
 	m_fFeelGrenadeRadius		= pSettings->read_if_exists<float>(section, "feel_grenade_radius", 10.0f);
 	m_fFeelGrenadeTime			= pSettings->read_if_exists<float>(section, "feel_grenade_time", 1.0f);
+	ArtefactsPowerSlot			= pSettings->read_if_exists<u16>(section, "artefacts_power_slot", NO_ACTIVE_SLOT);
+	ArtefactsPowerMinCondition	= pSettings->read_if_exists<float>(section, "artefacts_power_min_condition", 0.0f);
 	m_fFeelGrenadeTime			*= 1000.0f;
 	
 	character_physics_support()->in_Load		(section);
@@ -3383,6 +3385,22 @@ void CActor::MoveArtefactBelt(const CArtefact* artefact, bool on_belt)
 		CurrentGameUI()->UIMainIngameWnd->m_artefactPanel->InitIcons(m_ArtefactsOnBelt);
 }
 
+PIItem CActor::ArtefactsPowerItem() const
+{
+	return ArtefactsPowerSlot == NO_ACTIVE_SLOT ? nullptr : inventory().ItemFromSlot(ArtefactsPowerSlot);
+}
+
+bool CActor::ArtefactsHaveEffect() const
+{
+	if (ArtefactsPowerSlot == NO_ACTIVE_SLOT)
+	{
+		return true;
+	}
+
+	PIItem item = ArtefactsPowerItem();
+	return item != nullptr && item->GetCondition() >= ArtefactsPowerMinCondition;
+}
+
 #define ARTEFACTS_UPDATE_TIME 0.100f
 
 void CActor::UpdateArtefactsOnBeltAndOutfit()
@@ -3403,9 +3421,11 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
 		update_time		= 0.0f;
 	}
 
+	const bool artefactsHaveEffect = ArtefactsHaveEffect();
 	for (const PIItem item : inventory().m_belt)
 	{
-		if (CArtefact* artefact = item->cast_artefact())
+		CArtefact* artefact = artefactsHaveEffect ? item->cast_artefact() : nullptr;
+		if (artefact != nullptr)
 		{
 			float art_cond = artefact->GetCondition();
 			conditions().ChangeBleeding((artefact->m_fBleedingRestoreSpeed * art_cond) * f_update_time);
@@ -3454,6 +3474,11 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
 
 float CActor::HitArtefactsOnBelt(float hit_power, ALife::EHitType hit_type)
 {
+	if (!ArtefactsHaveEffect())
+	{
+		return hit_power;
+	}
+
 	float sum = 0.0f;
 
 	for (const PIItem item : inventory().m_belt)
@@ -3485,13 +3510,18 @@ float CActor::HitArtefactsOnBelt(float hit_power, ALife::EHitType hit_type)
 
 float CActor::HitArtefactsOnBeltLegacy(float hit_power, ALife::EHitType hit_type)
 {
+	if (!ArtefactsHaveEffect())
+	{
+		return hit_power;
+	}
+
 	float res_hit_power_k = 1.0f;
 	float _af_count = 0.0f;
 	for (const PIItem item : inventory().m_belt)
 	{
 		if (CArtefact* artefact = item->cast_artefact())
 		{
-			res_hit_power_k += artefact->AffectHit(1.0f, hit_type);
+			res_hit_power_k += artefact->ArtefactDesc().m_ArtefactHitImmunities.AffectHit(1.0f, hit_type);
 			_af_count += 1.0f;
 		}
 	}
@@ -3504,6 +3534,10 @@ float CActor::HitArtefactsOnBeltLegacy(float hit_power, ALife::EHitType hit_type
 float CActor::GetProtection_ArtefactsOnBelt(ALife::EHitType hit_type)
 {
 	float sum = 0.0f;
+	if (!ArtefactsHaveEffect())
+	{
+		return sum;
+	}
 
 	for (const PIItem item : inventory().m_belt)
 	{
@@ -3519,6 +3553,10 @@ float CActor::GetProtection_ArtefactsOnBelt(ALife::EHitType hit_type)
 float CActor::GetArtefactEquipmentDurabilityModifier() const
 {
 	float modifier = 1.0f;
+	if (!ArtefactsHaveEffect())
+	{
+		return modifier;
+	}
 
 	for (const PIItem item : inventory().m_belt)
 	{
@@ -3535,6 +3573,10 @@ float CActor::GetArtefactEquipmentDurabilityModifier() const
 float CActor::GetArtefactInventoryWeightModifier() const
 {
 	float modifier = 1.0f;
+	if (!ArtefactsHaveEffect())
+	{
+		return modifier;
+	}
 
 	for (const PIItem item : inventory().m_belt)
 	{
@@ -3551,6 +3593,10 @@ float CActor::GetArtefactInventoryWeightModifier() const
 float CActor::GetArtefactJumpHeightModifier() const
 {
 	float modifier = 0.0f;
+	if (!ArtefactsHaveEffect())
+	{
+		return modifier;
+	}
 
 	for (const PIItem item : inventory().m_belt)
 	{
@@ -3566,6 +3612,10 @@ float CActor::GetArtefactJumpHeightModifier() const
 float CActor::GetArtefactMovementSpeedModifier() const
 {
 	float modifier = 0.0f;
+	if (!ArtefactsHaveEffect())
+	{
+		return modifier;
+	}
 
 	for (const PIItem item : inventory().m_belt)
 	{
@@ -3730,6 +3780,8 @@ bool CActor::is_ai_obstacle				() const
 
 float CActor::GetRestoreSpeed( ALife::EConditionRestoreType const& type )
 {
+	static const TIItemContainer NoArtefacts;
+	const TIItemContainer& belt = ArtefactsHaveEffect() ? inventory().m_belt : NoArtefacts;
 	float res = 0.0f;
 	switch ( type )
 	{
@@ -3739,7 +3791,7 @@ float CActor::GetRestoreSpeed( ALife::EConditionRestoreType const& type )
 		res += conditions().V_SatietyHealth() * ( (conditions().GetSatiety() > 0.0f) ? 1.0f : -1.0f );
 		res += conditions().V_ThirstHealth() * ( (conditions().GetThirst() > 0.0f) ? 1.0f : -1.0f );
 
-		for (const PIItem item : inventory().m_belt)
+		for (const PIItem item : belt)
 		{
 			if (CArtefact* artefact = item->cast_artefact())
 			{
@@ -3760,7 +3812,7 @@ float CActor::GetRestoreSpeed( ALife::EConditionRestoreType const& type )
 	}
 	case ALife::eRadiationRestoreSpeed:
 	{	
-		for (const PIItem item : inventory().m_belt)
+		for (const PIItem item : belt)
 		{
 			if (CArtefact* artefact = item->cast_artefact())
 			{
@@ -3783,7 +3835,7 @@ float CActor::GetRestoreSpeed( ALife::EConditionRestoreType const& type )
 	{
 		res = conditions().V_Satiety();
 
-		for (const PIItem item : inventory().m_belt)
+		for (const PIItem item : belt)
 		{
 			if (CArtefact* artefact = item->cast_artefact())
 			{
@@ -3806,7 +3858,7 @@ float CActor::GetRestoreSpeed( ALife::EConditionRestoreType const& type )
 	{
 		res = conditions().V_Thirst();
 
-		for (const PIItem item : inventory().m_belt)
+		for (const PIItem item : belt)
 		{
 			if (CArtefact* artefact = item->cast_artefact())
 			{
@@ -3829,7 +3881,7 @@ float CActor::GetRestoreSpeed( ALife::EConditionRestoreType const& type )
 	{
 		res = conditions().GetSatietyPower();
 
-		for (const PIItem item : inventory().m_belt)
+		for (const PIItem item : belt)
 		{
 			if (CArtefact* artefact = item->cast_artefact())
 			{
@@ -3862,7 +3914,7 @@ float CActor::GetRestoreSpeed( ALife::EConditionRestoreType const& type )
 	{
 		res = conditions().change_v().m_fV_WoundIncarnation;
 	
-		for (const PIItem item : inventory().m_belt) 
+		for (const PIItem item : belt) 
 		{
 			if (CArtefact* artefact = item->cast_artefact())
 			{

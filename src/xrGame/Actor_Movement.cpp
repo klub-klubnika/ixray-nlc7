@@ -818,9 +818,11 @@ float CActor::get_additional_weight() const
 		res += backpack->m_additional_weight;
 	}
 
+	const bool artefactsHaveEffect = ArtefactsHaveEffect();
 	for (const PIItem item : inventory().m_belt)
 	{
-		if (CArtefact* artefact = item->cast_artefact())
+		CArtefact* artefact = artefactsHaveEffect ? item->cast_artefact() : nullptr;
+		if (artefact != nullptr)
 		{
 			res += artefact->AdditionalInventoryWeight() * artefact->GetCondition();
 		}

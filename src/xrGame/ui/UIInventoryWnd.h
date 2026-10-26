@@ -77,6 +77,13 @@ protected:
 	CUIOutfitInfo				UIOutfitInfo;
 
 	CInventoryOwner*			m_pInvOwner;
+	float						ShownWeight = -1.0f;
+	float						ShownMaxWeight = -1.0f;
+	CUIStatic*					AccumStatic = nullptr;
+	shared_str					AccumTexturePrefix;
+	int							AccumShownLevel = -1;
+
+	void						UpdateAccumStatic			();
 
 	virtual void				SetCurrentItem				(CUICellItem* itm) override;
 

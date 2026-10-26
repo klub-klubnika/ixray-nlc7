@@ -1379,9 +1379,11 @@ float CActorCondition::GetHealthBoost()
 
 	total += (m_change_v.m_fV_HealthRestore + m_fBoostHpRestore);
 
+	const bool artefactsHaveEffect = object().ArtefactsHaveEffect();
 	for (const PIItem item : object().inventory().m_belt)
 	{
-		if (CArtefact* artefact = item->cast_artefact())
+		CArtefact* artefact = artefactsHaveEffect ? item->cast_artefact() : nullptr;
+		if (artefact != nullptr)
 		{
 			float art_cond = artefact->GetCondition();
 			total += (artefact->m_fHealthRestoreSpeed * art_cond);
