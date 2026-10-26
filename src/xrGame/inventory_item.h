@@ -296,6 +296,10 @@ public:
 	u16 CurrSlot()  const { return m_ItemCurrPlace.slot_id; }
 	u16 CurrPlace()  const { return m_ItemCurrPlace.type; }
 
+	// Extra slots the item can be placed into besides BaseSlot (legacy "slot = a,b,c" lists, quick access slots)
+	const xr_vector<u16>& AllowedSlots() const { return AllowedSlotList; }
+	bool IsSlotAllowed(u16 Slot) const;
+
 	IC void SetPreferredSlotAfterPickup(u16 slotId) { m_preferredSlotAfterPickup = slotId; }
 	IC void ClearPreferredSlotAfterPickup() { m_preferredSlotAfterPickup = 0xffff; }
 	IC bool HasPreferredSlotAfterPickup() const { return m_preferredSlotAfterPickup != 0xffff; }
@@ -319,6 +323,9 @@ public:
 	virtual bool IsNecessaryItem(CInventoryItem* item);
 	virtual bool IsNecessaryItem(const shared_str& item_sect) { return false; };
 protected:
+	void LoadAllowedSlots(const char* section);
+
+	xr_vector<u16> AllowedSlotList;
 	bool HiddenInInventory = false;
 	u32 m_cost = 0;
 	float m_weight = 0.0f;

@@ -107,6 +107,7 @@ protected:
 	void						PropertiesBoxForRepair		(PIItem item, bool& b_show);
 	bool						CanMoveToPartner			(PIItem pItem);
 	bool						CanSetItemToList			(PIItem item, CUIDragDropListEx* l, u16& ret_slot);
+	u16							PreferredSlot				(PIItem item);
 
 	void						TryHidePropertiesBox		();
 	float						CalcItemsWeight				(CUIDragDropListEx* pList);

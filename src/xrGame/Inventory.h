@@ -59,6 +59,8 @@ public:
 	bool InRuck(const CInventoryItem* pIItem) const;
 
 	bool CanPutInSlot(PIItem pIItem, u16 slot_id, bool bAllowReplacement = false) const;
+	// First free slot among the item's base and allowed slots, NO_ACTIVE_SLOT if none
+	u16 FindFreeAllowedSlot(PIItem pIItem) const;
 	bool CanPutInBelt(PIItem pIItem);
 	bool CanPutInRuck(PIItem pIItem) const;
 

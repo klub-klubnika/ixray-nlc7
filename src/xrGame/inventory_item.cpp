@@ -156,10 +156,72 @@ void CInventoryItem::Load(const char* section)
 
 	m_inv_rect.set(inv_grid_x, inv_grid_y, inv_grid_width, inv_grid_height);
 
+	LoadAllowedSlots(section);
+
 	ReadCustomTextAndMarks(section);
 	Read3dStaticsData(section);
 
 	item_attachments_manager::load_attachments(nullptr);
+}
+
+void CInventoryItem::LoadAllowedSlots(const char* section)
+{
+	AllowedSlotList.clear();
+
+	auto AddSlot = [this](u16 Slot)
+	{
+		if (Slot != NO_ACTIVE_SLOT && Slot <= LAST_SLOT && !IsSlotAllowed(Slot))
+		{
+			AllowedSlotList.push_back(Slot);
+		}
+	};
+
+	// Legacy multi-slot list: "slot = 12,13,14,15,8" (0-based legacy ids, the first one is the base slot)
+	const char* SlotList = pSettings->read_if_exists<str_c>(section, "slot", "");
+	const int SlotCount = _GetItemCount(SlotList);
+	if (SlotCount > 1)
+	{
+		string16 SlotStr;
+		for (int i = 0; i < SlotCount; ++i)
+		{
+			const int LegacySlot = atoi(_GetItem(SlotList, i, SlotStr));
+			if (LegacySlot >= 0)
+			{
+				AddSlot(u16(LegacySlot + 1));
+			}
+		}
+	}
+
+	// Small eatable items can be put into quick access slots
+	const char* QuickSlots = pSettings->read_if_exists<str_c>("inventory", "eatable_quick_slots", "");
+	if (cast_eatable_item() != nullptr && m_inv_rect.x2 <= 1 && m_inv_rect.y2 <= 1 && QuickSlots[0] != '\0')
+	{
+		if (BaseSlot() != NO_ACTIVE_SLOT)
+		{
+			AddSlot(BaseSlot());
+		}
+
+		string16 SlotStr;
+		for (int i = 0, Count = _GetItemCount(QuickSlots); i < Count; ++i)
+		{
+			AddSlot(u16(atoi(_GetItem(QuickSlots, i, SlotStr))));
+		}
+	}
+}
+
+bool CInventoryItem::IsSlotAllowed(u16 Slot) const
+{
+	if (Slot == NO_ACTIVE_SLOT)
+	{
+		return false;
+	}
+
+	if (Slot == BaseSlot())
+	{
+		return true;
+	}
+
+	return std::find(AllowedSlotList.begin(), AllowedSlotList.end(), Slot) != AllowedSlotList.end();
 }
 
 void CInventoryItem::SetAdditionalName(const char* text)

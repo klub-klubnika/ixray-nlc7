@@ -1668,6 +1668,29 @@ bool CInventory::CanPutInSlot(PIItem pIItem, u16 slot_id, bool bAllowReplacement
 
 	return false;
 }
+u16 CInventory::FindFreeAllowedSlot(PIItem pIItem) const
+{
+	if (pIItem == nullptr)
+	{
+		return NO_ACTIVE_SLOT;
+	}
+
+	if (pIItem->BaseSlot() != NO_ACTIVE_SLOT && CanPutInSlot(pIItem, pIItem->BaseSlot()))
+	{
+		return pIItem->BaseSlot();
+	}
+
+	for (u16 Slot : pIItem->AllowedSlots())
+	{
+		if (CanPutInSlot(pIItem, Slot))
+		{
+			return Slot;
+		}
+	}
+
+	return NO_ACTIVE_SLOT;
+}
+
 //проверяет можем ли поместить вещь на пояс,
 //при этом реально ничего не меняется
 bool CInventory::CanPutInBelt(PIItem pIItem)

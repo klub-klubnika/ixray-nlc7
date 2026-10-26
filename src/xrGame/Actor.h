@@ -447,6 +447,7 @@ protected:
 	bool					use_Vehicle				(CHolderCustom* object);
 	void					ActorUse				();
 	void					ActorQuickSlotUse		(int cmd);
+	void					ActorQuickAccessSlotUse	(int cmd);
 
 protected:
 	bool					m_bAnimTorsoPlayed;

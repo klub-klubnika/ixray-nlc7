@@ -459,6 +459,20 @@ u32 CUIActorMenuBase::CalcItemsPrice(CUIDragDropListEx* pList, CTrade* pTrade, b
 	return					iPrice;
 }
 
+u16 CUIActorMenuBase::PreferredSlot(PIItem item)
+{
+	if (!item->AllowedSlots().empty())
+	{
+		const u16 FreeSlot = GetInventoryOwner()->inventory().FindFreeAllowedSlot(item);
+		if (FreeSlot != NO_ACTIVE_SLOT && m_pInvList[FreeSlot] != nullptr)
+		{
+			return FreeSlot;
+		}
+	}
+
+	return item->BaseSlot();
+}
+
 bool CUIActorMenuBase::CanSetItemToList(PIItem item, CUIDragDropListEx* l, u16& ret_slot)
 {
 	u16 item_slot = item->BaseSlot();
@@ -466,6 +480,15 @@ bool CUIActorMenuBase::CanSetItemToList(PIItem item, CUIDragDropListEx* l, u16& 
 	{
 		ret_slot	= item_slot;
 		return		true;
+	}
+
+	for (u16 Slot : item->AllowedSlots())
+	{
+		if (m_pInvList[Slot] && m_pInvList[Slot] == l)
+		{
+			ret_slot = Slot;
+			return true;
+		}
 	}
 
 	// Sidearm items keep BaseSlot INV_SLOT_2; map drops onto the dedicated holster list to PISTOL_SLOT_NEW.

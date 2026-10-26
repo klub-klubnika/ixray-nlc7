@@ -2650,6 +2650,49 @@ void CActor::NoClipFlyGamepad(int cmd)
 
 #endif //DEBUG
 
+// Legacy SoC inventory without a quick slot panel: quick use keys consume the item from [inventory] quick_use_slots
+void CActor::ActorQuickAccessSlotUse(int cmd)
+{
+	if (!CurrentGameUI())
+	{
+		return;
+	}
+
+	const char* SlotList = pSettings->read_if_exists<str_c>("inventory", "quick_use_slots", "");
+	const int Index = cmd - kQUICK_USE_1;
+	if (Index < 0 || Index >= _GetItemCount(SlotList))
+	{
+		return;
+	}
+
+	string16 SlotStr;
+	const u16 Slot = u16(atoi(_GetItem(SlotList, Index, SlotStr)));
+	if (Slot == NO_ACTIVE_SLOT || Slot > LAST_SLOT)
+	{
+		return;
+	}
+
+	PIItem SlotItem = inventory().ItemFromSlot(Slot);
+	if (SlotItem == nullptr || SlotItem->cast_eatable_item() == nullptr)
+	{
+		return;
+	}
+
+	// Use the same item from the ruck first, so the slot stays filled
+	PIItem UsedItem = inventory().Same(SlotItem, true);
+	if (UsedItem == nullptr)
+	{
+		UsedItem = SlotItem;
+	}
+
+	IsGameTypeSingle() ? inventory().Eat(UsedItem) : inventory().ClientEat(UsedItem);
+
+	SDrawStaticStruct* Static = CurrentGameUI()->AddCustomStatic("item_used", true);
+	string1024 Str = {};
+	xr_strconcat(Str, *g_pStringTable->translate("st_item_used"), ": ", UsedItem->NameItem());
+	Static->wnd()->TextItemControl()->SetText(Str);
+}
+
 void CActor::ActorQuickSlotUse(int cmd)
 {
 	// Show quick slots panel on item use
@@ -2665,6 +2708,7 @@ void CActor::ActorQuickSlotUse(int cmd)
 
 	if (!CurrentGameUI() || !CurrentGameUI()->ActorMenu() || !CurrentGameUI()->ActorMenu()->m_pQuickSlot)
 	{
+		ActorQuickAccessSlotUse(cmd);
 		return;
 	}
 

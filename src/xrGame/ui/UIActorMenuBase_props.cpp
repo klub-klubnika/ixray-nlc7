@@ -260,7 +260,7 @@ void CUIActorMenuBase::PropertiesBoxForSlots(CUICellItem* cell_item, PIItem item
 
 	// Флаг-признак для невлючения пункта контекстного меню: Dreess Outfit, если костюм уже надет
 	bool bAlreadyDressed = false;
-	u16 cur_slot = item->BaseSlot();
+	u16 cur_slot = PreferredSlot(item);
 
 	if (cur_slot == GRENADE_SLOT && IsSlotHiddenInUi(cur_slot))
 	{
@@ -286,7 +286,7 @@ void CUIActorMenuBase::PropertiesBoxForSlots(CUICellItem* cell_item, PIItem item
 		}
 		else
 		{
-			m_UIPropertiesBox->AddItem("st_move_to_slot", (void*)item->BaseSlot(), INVENTORY_TO_SLOT_ACTION);
+			m_UIPropertiesBox->AddItem("st_move_to_slot", (void*)cur_slot, INVENTORY_TO_SLOT_ACTION);
 		}
 		b_show = true;
 	}

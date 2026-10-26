@@ -411,9 +411,24 @@ void CUIActorMenuBase::highlight_item_slot(CUICellItem* cell_item)
 		return;
 	}
 
+	bool AllowedHighlighted = false;
+	for (u16 Slot : item->AllowedSlots())
+	{
+		if (m_pInvSlotHighlight[Slot])
+		{
+			m_pInvSlotHighlight[Slot]->Show(true);
+			AllowedHighlighted = true;
+		}
+	}
+
 	if (m_pInvSlotHighlight[slot_id])
 	{
 		m_pInvSlotHighlight[slot_id]->Show(true);
+		return;
+	}
+
+	if (AllowedHighlighted)
+	{
 		return;
 	}
 

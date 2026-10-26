@@ -126,7 +126,29 @@ bool CUIActorMenuBase::OnItemDrop(CUICellItem* itm)
 			u16 slot_to_place;
 			if( CanSetItemToList(CurrentIItem(), new_owner, slot_to_place) )
 			{
-				ToSlot	(itm, true, slot_to_place);
+				if (!ToSlot(itm, true, slot_to_place))
+				{
+					Msg("! Cannot put item [%s] into slot [%d]", CurrentIItem()->object().cName().c_str(), slot_to_place);
+				}
+			}
+			else if (PIItem Item = CurrentIItem())
+			{
+				string256 Allowed = {};
+				for (u16 Slot : Item->AllowedSlots())
+				{
+					string16 Num;
+					xr_sprintf(Num, "%d ", Slot);
+					xr_strcat(Allowed, Num);
+				}
+				u16 TargetSlot = NO_ACTIVE_SLOT;
+				for (u16 i = 1; i <= LAST_SLOT; ++i)
+				{
+					if (m_pInvList[i] == new_owner)
+					{
+						TargetSlot = i;
+					}
+				}
+				Msg("! Item [%s] is not allowed in slot [%d], base slot [%d], allowed slots { %s}", Item->object().cName().c_str(), TargetSlot, Item->BaseSlot(), Allowed);
 			}
 			else if (m_pQuickSlot)
 			{
@@ -559,11 +581,11 @@ bool CUIActorMenuBase::OnItemDbClick(CUICellItem* itm)
 			}
 			
 			PIItem iitem_to_place = (PIItem)real_itm ->m_pData;
-			if ( !ToSlot( real_itm , false, iitem_to_place->BaseSlot() ) )
+			if ( !ToSlot( real_itm , false, PreferredSlot(iitem_to_place) ) )
 			{
 				if ( !ToBelt( real_itm , false ) )
 				{
-					ToSlot( real_itm , true, iitem_to_place->BaseSlot() );
+					ToSlot( real_itm , true, PreferredSlot(iitem_to_place) );
 				}
 			}
 			ActivateStackList(itm->m_represent_top_parent);
@@ -619,7 +641,7 @@ bool CUIActorMenuBase::OnItemDbClick(CUICellItem* itm)
 				break;
 			}
 			PIItem iitem_to_place = (PIItem)itm->m_pData;
-			if ( !ToSlot( itm, false, iitem_to_place->BaseSlot() ) )
+			if ( !ToSlot( itm, false, PreferredSlot(iitem_to_place) ) )
 			{
 				if ( !ToBelt( itm, false ) )
 				{
@@ -643,7 +665,7 @@ bool CUIActorMenuBase::OnItemDbClick(CUICellItem* itm)
 						bResult = true;
 					}
 					if (!bResult)
-						bResult = ToSlot(itm, true, iitem_to_place->BaseSlot());
+						bResult = ToSlot(itm, true, PreferredSlot(iitem_to_place));
 					if (pInput->GetControllerMode() && bResult)
 						SetCurrentItem(nullptr);
 				}
