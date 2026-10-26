@@ -190,6 +190,7 @@ CSE_Abstract *CALifeSimulator__spawn_item		(CALifeSimulator *self_, const char* 
 	{
 		Msg("! Section [%s] not found in game configs!", section);
 		g_pScriptEngine->print_stack();
+		return nullptr;
 	}
 
 	return								(self_->spawn_item(section,position,level_vertex_id,game_vertex_id,ALife::INVALID_OBJECT_ID));
@@ -201,6 +202,7 @@ CSE_Abstract *CALifeSimulator__spawn_item2		(CALifeSimulator *self_, const char*
 	{
 		Msg("! Section [%s] not found in game configs!", section);
 		g_pScriptEngine->print_stack();
+		return nullptr;
 	}
 
 	if (id_parent == ALife::INVALID_OBJECT_ID)
@@ -252,6 +254,7 @@ CSE_Abstract *CALifeSimulator__spawn_item3(CALifeSimulator *self, const char* se
 	{
 		Msg("! Section [%s] not found in game configs!", section);
 		g_pScriptEngine->print_stack();
+		return nullptr;
 	}
 
 	if (id_parent == ALife::INVALID_OBJECT_ID)

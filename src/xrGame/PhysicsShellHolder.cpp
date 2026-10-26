@@ -260,6 +260,11 @@ void CPhysicsShellHolder::setup_physic_shell	()
 {
 	VERIFY						(!m_pPhysicsShell);
 	create_physic_shell			();
+	if (!m_pPhysicsShell)
+	{
+		Msg("! Object [%s] section [%s] has no physics shell after create_physic_shell", cName().c_str(), cNameSect().c_str());
+		return;
+	}
 	m_pPhysicsShell->Activate	(XFORM(),0,XFORM());
 	PKinematics(Visual())->CalculateBones_Invalidate	();
 	PKinematics(Visual())->CalculateBones(true);

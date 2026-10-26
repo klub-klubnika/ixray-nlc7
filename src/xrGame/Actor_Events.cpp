@@ -96,6 +96,7 @@ void CActor::OnEvent(NET_Packet& P, u16 type)
 			{
 				if (IsGameTypeSingle())
 				{
+					Msg("! Actor can't take [%d][%s] section [%s]", _GO->ID(), _GO->cName().c_str(), _GO->cNameSect().c_str());
 					RestoreWorldItemPhysics(Obj);
 					Level().m_feel_deny.feel_touch_deny(Obj, 1000);
 				}

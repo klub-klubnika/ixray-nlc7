@@ -204,11 +204,23 @@ bool CHelicopter::net_Spawn(CSE_Abstract*	DC)
 	
 	IKinematicsAnimated	*A	= Visual()->dcast_PKinematicsAnimated();
 	if (A) {
-		A->PlayCycle		(*heli->startup_animation);
+		MotionID StartupMotion = A->ID_Cycle_Safe(heli->startup_animation);
+		if (StartupMotion.valid())
+		{
+			A->PlayCycle	(StartupMotion);
+		}
+		else
+		{
+			Msg("! Heli object [%s] has no startup animation [%s]", heli->name_replace(), heli->startup_animation.c_str());
+		}
 		K->CalculateBones	(true);
 	}
 
-	if (I_ASSERT_M(heli->engine_sound.size(), "Heli object [%s] do not have engine sound!", heli->name_replace()))
+	if (!heli->engine_sound.size())
+	{
+		Msg("! Heli object [%s] do not have engine sound!", heli->name_replace());
+	}
+	else
 	{
 		m_engineSound.create(*heli->engine_sound,st_Effect,sg_SourceType);
 		m_engineSound.play_at_pos(nullptr,XFORM().c,sm_Looped);
