@@ -45,6 +45,13 @@ if (WIN32)
     add_dependencies(xrEngine xrGame xrRender_R4 xrCrashDumpHelper)
 endif()
 
+set(IXRAY_GAME_DIR "${CMAKE_SOURCE_DIR}" CACHE PATH "Game folder with fsgame.ltx used as the debugger working directory")
+set(IXRAY_GAME_ARGS "-nointro -noprefetch" CACHE STRING "Command line passed to xrEngine when debugging from Visual Studio")
+set_target_properties(xrEngine PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${IXRAY_GAME_DIR}"
+    VS_DEBUGGER_COMMAND_ARGUMENTS "${IXRAY_GAME_ARGS}"
+)
+
 if(IXRAY_MP)
     add_dependencies(xrEngine xrGameSpy)
 endif()
