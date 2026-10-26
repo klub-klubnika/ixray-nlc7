@@ -841,6 +841,23 @@ void set_texture_source(const char* name, const char* source)
 		Device.m_pRender->ResourcesSetTextureSource(name, source);
 	}
 }
+
+// Loaded texture names that contain the pattern, as a Lua array
+luabind::object find_textures(const char* pattern)
+{
+	luabind::object Result = luabind::newtable(ai().script_engine().lua());
+	if (Device.m_pRender)
+	{
+		xr_vector<shared_str> Names;
+		Device.m_pRender->ResourcesFindTextures(pattern, Names);
+		int Index = 1;
+		for (const shared_str& Name : Names)
+		{
+			Result[Index++] = Name.c_str();
+		}
+	}
+	return Result;
+}
 #include "actor_statistic_mgr.h"
 void add_actor_points(const char* sect, const char* detail_key, int cnt, int pts)
 {
@@ -2076,6 +2093,7 @@ void CLevel::script_register(lua_State *L)
 		def("is_inventory_grid_disabled",		&is_inventory_grid_disabled),
 		def("set_inventory_grid_disabled",		&set_inventory_grid_disabled),
 		def("set_texture_source",				&set_texture_source),
+		def("find_textures",					&find_textures),
 		def("net_update",						&LevelNetUpdate),
 		def("add_cam_effector",					&add_cam_effector),
 		def("add_cam_effector2",				&add_cam_effector2),

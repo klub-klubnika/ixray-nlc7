@@ -97,6 +97,8 @@ public:
 
 	virtual bool GetVideoMemoryInfo(SVideoMemoryInfo& Info) { return false; }
 	virtual void	ResourcesSetTextureSource(const char* name, const char* source) {}
+	// Names of loaded textures that contain Pattern
+	virtual void	ResourcesFindTextures(const char* Pattern, xr_vector<shared_str>& Out) {}
 };
 
 #endif //	RenderDeviceRender_included

@@ -194,6 +194,14 @@ void dxRenderDeviceRender::ResourcesSetTextureSource(const char* name, const cha
 	}
 }
 
+void dxRenderDeviceRender::ResourcesFindTextures(const char* Pattern, xr_vector<shared_str>& Out)
+{
+	if (Resources)
+	{
+		Resources->FindTextures(Pattern, Out);
+	}
+}
+
 void dxRenderDeviceRender::ResourcesDeferredUnload()
 {
 	Resources->DeferredUnload();

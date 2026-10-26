@@ -248,6 +248,7 @@ public:
 	void ReloadTextureDescriptions();
 	void SetTextureSource(const char* name, const char* source);
 	shared_str GetTextureSource(const shared_str& name);
+	void FindTextures(const char* Pattern, xr_vector<shared_str>& Out);
 	void ProcessTextureSources();
 	void			DeferredUnload			();
 	void			Evict					();

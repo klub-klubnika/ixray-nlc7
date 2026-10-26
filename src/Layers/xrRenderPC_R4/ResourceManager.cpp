@@ -493,6 +493,27 @@ shared_str CResourceManager::GetTextureSource(const shared_str& name)
 	return It != TextureSources.end() ? It->second : shared_str();
 }
 
+void CResourceManager::FindTextures(const char* Pattern, xr_vector<shared_str>& Out)
+{
+	if (Pattern == nullptr || Pattern[0] == 0)
+	{
+		return;
+	}
+
+	string_path FixedPattern;
+	xr_strcpy(FixedPattern, Pattern);
+	fix_texture_name(FixedPattern);
+
+	xrCriticalSectionGuard Guard(creationGuard);
+	for (const auto& [Name, Texture] : m_textures)
+	{
+		if (strstr(Name, FixedPattern) != nullptr)
+		{
+			Out.emplace_back(Name);
+		}
+	}
+}
+
 void CResourceManager::ProcessTextureSources()
 {
 	xr_vector<shared_str> Pending;
