@@ -344,8 +344,10 @@ bool CTexture::StartLoading()
 
 	// Video playback and texture sequences stay on the calling thread.
 	string_path FileName;
-	if (strchr(*cName, '$') || FS.exist(FileName, _game_textures_, *cName, ".ogm") ||
-		FS.exist(FileName, _game_textures_, *cName, ".avi") || FS.exist(FileName, _game_textures_, *cName, ".seq"))
+	const shared_str SourceName = DEV->GetTextureSource(cName);
+	const char* TextureFile = SourceName.size() ? SourceName.c_str() : cName.c_str();
+	if (strchr(*cName, '$') || FS.exist(FileName, _game_textures_, TextureFile, ".ogm") ||
+		FS.exist(FileName, _game_textures_, TextureFile, ".avi") || FS.exist(FileName, _game_textures_, TextureFile, ".seq"))
 	{
 		return false;
 	}
@@ -421,11 +423,13 @@ void CTexture::LoadImpl()
 		return;
 	}
 
+	const shared_str SourceName = DEV->GetTextureSource(cName);
+	const char* TextureFile = SourceName.size() ? SourceName.c_str() : cName.c_str();
 	bool bCreateView = true;
 
 	// Check for OGM
 	string_path fn;
-	if (FS.exist(fn, _game_textures_, *cName, ".ogm"))
+	if (FS.exist(fn, _game_textures_, TextureFile, ".ogm"))
 	{
 		// AVI
 		pTheora = new CTheoraSurface();
@@ -470,7 +474,7 @@ void CTexture::LoadImpl()
 
 		}
 	}
-	else if (FS.exist(fn, _game_textures_, *cName, ".avi"))
+	else if (FS.exist(fn, _game_textures_, TextureFile, ".avi"))
 	{
 		// AVI
 		pAVI = new CAviPlayerCustom();
@@ -510,7 +514,7 @@ void CTexture::LoadImpl()
 
 		}
 	}
-	else if (FS.exist(fn, _game_textures_, *cName, ".seq"))
+	else if (FS.exist(fn, _game_textures_, TextureFile, ".seq"))
 	{
 		// Sequence
 		string256 buffer;
@@ -551,7 +555,7 @@ void CTexture::LoadImpl()
 	{
 		// Normal texture
 		u32	mem = 0;
-		pSurface = ::RImplementation.texture_load(*cName, mem, true);
+		pSurface = ::RImplementation.texture_load(TextureFile, mem, true);
 
 		if (GetUsage() == ERHI_USAGE::USAGE_STAGING)
 		{

@@ -110,6 +110,10 @@ private:
 	xrCriticalSection creationGuard;
 	void LoadTexture(CTexture* Texture);
 
+	xrCriticalSection TextureSourcesGuard;
+	xr_hash_map<shared_str, shared_str> TextureSources;
+	xr_vector<shared_str> PendingTextureSources;
+
 public:
 	CTextureDescrMngr									m_textures_description;
 	xr_vector<std::pair<shared_str,RHIShaderConstant::Setup*> >	v_constant_setup;
@@ -242,6 +246,9 @@ public:
 	void			DeferredUpload			();
 	void WaitForTextureLoading();
 	void ReloadTextureDescriptions();
+	void SetTextureSource(const char* name, const char* source);
+	shared_str GetTextureSource(const shared_str& name);
+	void ProcessTextureSources();
 	void			DeferredUnload			();
 	void			Evict					();
 	void			StoreNecessaryTextures	();

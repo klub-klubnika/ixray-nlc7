@@ -39,6 +39,7 @@ public:
 	virtual void ResourcesDestroyNecessaryTextures() override;
 	virtual void ResourcesStoreNecessaryTextures()override ;
 	virtual void ResourcesDumpMemoryUsage() override;
+	virtual void ResourcesSetTextureSource(const char* name, const char* source) override;
 	virtual bool HWSupportsShaderYUV2RGB() override;
 	virtual DeviceState GetDeviceState() override;
 	virtual bool GetForceGPU_REF() override;

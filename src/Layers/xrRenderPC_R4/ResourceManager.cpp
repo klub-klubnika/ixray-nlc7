@@ -455,6 +455,76 @@ void CResourceManager::ReloadTextureDescriptions()
 	m_textures_description.Load();
 }
 
+void CResourceManager::SetTextureSource(const char* name, const char* source)
+{
+	if (name == nullptr || name[0] == 0)
+	{
+		return;
+	}
+
+	string_path FixedName;
+	xr_strcpy(FixedName, name);
+	fix_texture_name(FixedName);
+
+	string_path FixedSource = {};
+	if (source != nullptr && source[0] != 0)
+	{
+		xr_strcpy(FixedSource, source);
+		fix_texture_name(FixedSource);
+	}
+
+	shared_str Key = FixedName;
+	xrCriticalSectionGuard Guard(TextureSourcesGuard);
+	if (FixedSource[0] == 0 || 0 == xr_strcmp(FixedSource, FixedName))
+	{
+		TextureSources.erase(Key);
+	}
+	else
+	{
+		TextureSources[Key] = FixedSource;
+	}
+	PendingTextureSources.push_back(Key);
+}
+
+shared_str CResourceManager::GetTextureSource(const shared_str& name)
+{
+	xrCriticalSectionGuard Guard(TextureSourcesGuard);
+	auto It = TextureSources.find(name);
+	return It != TextureSources.end() ? It->second : shared_str();
+}
+
+void CResourceManager::ProcessTextureSources()
+{
+	xr_vector<shared_str> Pending;
+	{
+		xrCriticalSectionGuard Guard(TextureSourcesGuard);
+		if (PendingTextureSources.empty())
+		{
+			return;
+		}
+		Pending.swap(PendingTextureSources);
+	}
+
+	for (const shared_str& Name : Pending)
+	{
+		CTexture* Texture = nullptr;
+		{
+			xrCriticalSectionGuard Guard(creationGuard);
+			auto It = m_textures.find(Name.c_str());
+			if (It != m_textures.end())
+			{
+				Texture = It->second;
+			}
+		}
+
+		if (Texture != nullptr && Texture->flags.bLoaded)
+		{
+			Texture->Unload();
+			Texture->Load();
+		}
+	}
+}
+
 // Direct3D 9 keeps textures in D3DPOOL_DEFAULT. IDirect3DDevice9::Reset fails while any of them
 // exists, so R1 and R2 always unload and upload textures in bulk, whatever user.ltx says.
 static bool DeferredTextureLoadEnabled()

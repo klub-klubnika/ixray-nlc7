@@ -186,6 +186,14 @@ void dxRenderDeviceRender::ResourcesDeferredUpload()
 	Resources->DeferredUpload();
 }
 
+void dxRenderDeviceRender::ResourcesSetTextureSource(const char* name, const char* source)
+{
+	if (Resources)
+	{
+		Resources->SetTextureSource(name, source);
+	}
+}
+
 void dxRenderDeviceRender::ResourcesDeferredUnload()
 {
 	Resources->DeferredUnload();
@@ -295,6 +303,8 @@ void dxRenderDeviceRender::Begin()
 
 	if (Resources)
 	{
+		Resources->ProcessTextureSources();
+
 		CSVGStorage* svg = Resources->GetSVGStorage();
 		if (svg)
 			svg->BeginRasterFrameCache();

@@ -96,6 +96,7 @@ public:
 	};
 
 	virtual bool GetVideoMemoryInfo(SVideoMemoryInfo& Info) { return false; }
+	virtual void	ResourcesSetTextureSource(const char* name, const char* source) {}
 };
 
 #endif //	RenderDeviceRender_included
