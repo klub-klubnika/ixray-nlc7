@@ -254,7 +254,7 @@ void CUIActorMenuBase::OnInventoryAction(PIItem pItem, u16 action_type)
 
 				if ( !b_already )
 				{
-					if ( lst_to_add )
+					if ( lst_to_add && (pItem->VisibleInInventory() || lst_to_add != GetActorList()) )
 					{
 						CUICellItem* itm	= create_cell_item(pItem);
 						lst_to_add->SetItem	(itm);

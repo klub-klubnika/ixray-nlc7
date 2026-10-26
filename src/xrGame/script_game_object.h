@@ -972,6 +972,11 @@ public:
 			int					GetAmmoCount(u8 type);
 
 			bool IsOnBelt(CScriptGameObject* obj) const;
+			void SetMaxBelt(u32 value);
+			u32 GetMaxBelt() const;
+			void SetVisibleInSlot(int slot, bool visible);
+			bool VisibleInSlot(int slot) const;
+			void InvalidateInventory();
 			bool IsDefaultToRuck();
 			void SetDefaultToRuck(bool state);
 			void SetRemainingUses(u8 value);

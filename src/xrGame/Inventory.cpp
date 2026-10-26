@@ -1795,8 +1795,26 @@ bool CInventory::CanTakeItem(CInventoryItem* inventory_item) const
 	return true;
 }
 
+void CInventory::SetMaxBelt(u32 value)
+{
+	ScriptMaxBelt = static_cast<s32>(value);
+	while (m_belt.size() > value)
+	{
+		if (!Ruck(m_belt.back()))
+		{
+			break;
+		}
+	}
+	InvalidateState();
+}
+
 u32 CInventory::BeltWidth() const
 {
+	if (ScriptMaxBelt >= 0)
+	{
+		return static_cast<u32>(ScriptMaxBelt);
+	}
+
 	CActor* pActor = m_pOwner->cast_actor();
 	if (pActor != nullptr && !m_iMaxBelt)
 	{

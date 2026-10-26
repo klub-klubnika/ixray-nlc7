@@ -931,6 +931,9 @@ void CUIActorMenuBase::InitInventoryContents(CUIDragDropListEx* pBagList)
 		if ( bag )
 			continue;
 
+		if (!(*itb)->VisibleInInventory())
+			continue;
+
 		CUICellItem* itm = create_cell_item( *itb );
 		curr_list->SetItem(itm);
 		if (GetPartner() || GetInvBox())
@@ -953,6 +956,11 @@ void CUIActorMenuBase::InitCellForSlot( u16 slot_idx )
 	}
 
 	if (slot_idx == GRENADE_SLOT && !ShouldDisplayGrenadeInBag() && IsSlotHiddenInUi(slot_idx))
+	{
+		return;
+	}
+
+	if (IsSlotHiddenInUi(slot_idx) && !item->VisibleInInventory())
 	{
 		return;
 	}

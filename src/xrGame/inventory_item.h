@@ -307,6 +307,9 @@ public:
 	void Ruck(bool on_ruck) { m_flags.set(Fruck, on_ruck); }
 	bool RuckDefault() { return !!m_flags.test(FRuckDefault); }
 
+	bool VisibleInInventory() const { return !HiddenInInventory; }
+	void SetVisibleInInventory(bool visible) { HiddenInInventory = !visible; }
+
 	virtual bool CanTake() const { return !!m_flags.test(FCanTake); }
 	virtual void SetCanTake(bool state) { m_flags.set(FCanTake, state); }
 	bool CanTrade() const;
@@ -316,6 +319,7 @@ public:
 	virtual bool IsNecessaryItem(CInventoryItem* item);
 	virtual bool IsNecessaryItem(const shared_str& item_sect) { return false; };
 protected:
+	bool HiddenInInventory = false;
 	u32 m_cost = 0;
 	float m_weight = 0.0f;
 	float m_fCondition = 1.0f;

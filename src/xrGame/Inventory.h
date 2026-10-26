@@ -150,6 +150,8 @@ public:
 	void SetMaxWeight(float weight) { m_fMaxWeight = weight; }
 
 	u32 BeltWidth() const;
+	void SetMaxBelt(u32 value);
+	void ResetMaxBelt() { ScriptMaxBelt = -1; }
 
 	inline CInventoryOwner* GetOwner() const { return m_pOwner; }
 
@@ -163,6 +165,7 @@ public:
 
 	// Максимальное кол-во объектов на поясе
 	u32 m_iMaxBelt = 0;
+	s32 ScriptMaxBelt = -1;
 
 	void AddExternalStorage(shared_str story_id, CTradeStorageBox* obj);
 	IC bool GetTraderExternalStorageMode() const {return m_TraderExternalStorageMode;}

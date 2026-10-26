@@ -27,6 +27,7 @@
 #include "level_graph.h"
 #include "HudItem.h"
 #include "ui/UITalkWnd.h"
+#include "ui/UIInventoryWnd.h"
 #include "Inventory.h"
 #include "InfoPortion.h"
 #include "ai/stalker/ai_stalker.h"
@@ -2280,6 +2281,67 @@ u32 CScriptGameObject::BeltSize() const
 
 	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CInventoryOwner : cannot access class member move_to_belt!");
 	return 0;
+}
+
+void CScriptGameObject::SetMaxBelt(u32 value)
+{
+	if (CInventoryOwner* inventory_owner = object().cast_inventory_owner())
+	{
+		inventory_owner->inventory().SetMaxBelt(value);
+		return;
+	}
+
+	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CInventoryOwner : cannot access class member set_max_belt!");
+}
+
+u32 CScriptGameObject::GetMaxBelt() const
+{
+	if (CInventoryOwner* inventory_owner = object().cast_inventory_owner())
+	{
+		return inventory_owner->inventory().BeltWidth();
+	}
+
+	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CInventoryOwner : cannot access class member get_max_belt!");
+	return 0;
+}
+
+void CScriptGameObject::SetVisibleInSlot(int slot, bool visible)
+{
+	if (CInventoryItem* inventory_item = object().cast_inventory_item())
+	{
+		inventory_item->SetVisibleInInventory(visible);
+		return;
+	}
+
+	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CInventoryItem : cannot access class member set_visible_in_slot!");
+}
+
+bool CScriptGameObject::VisibleInSlot(int slot) const
+{
+	if (CInventoryItem* inventory_item = object().cast_inventory_item())
+	{
+		return inventory_item->VisibleInInventory();
+	}
+
+	ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CInventoryItem : cannot access class member visible_in_slot!");
+	return false;
+}
+
+void CScriptGameObject::InvalidateInventory()
+{
+	CInventoryOwner* inventory_owner = object().cast_inventory_owner();
+	if (inventory_owner == nullptr)
+	{
+		ai().script_engine().script_log(ScriptStorage::eLuaMessageTypeError, "CInventoryOwner : cannot access class member invalidate_inventory!");
+		return;
+	}
+
+	inventory_owner->inventory().InvalidateState();
+	CUIInventoryWnd* inventoryWnd = CurrentGameUI() != nullptr ? CurrentGameUI()->InventoryWnd() : nullptr;
+	if (inventoryWnd != nullptr && inventoryWnd->IsShown())
+	{
+		inventoryWnd->InitInventory();
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
