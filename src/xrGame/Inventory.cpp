@@ -636,7 +636,8 @@ bool CInventory::Slot(u16 slot_id, PIItem pIItem, bool bNotActivate, bool strict
 		m_slots[pIItem->CurrSlot()].m_pIItem = nullptr;
 	}
 
-	if (((m_iActiveSlot == slot_id) || (m_iActiveSlot == NO_ACTIVE_SLOT) && m_iNextActiveSlot == NO_ACTIVE_SLOT) && (!bNotActivate))
+	// Items put into a blocked slot (a container or a dialog is open) must not be drawn once it unblocks
+	if (((m_iActiveSlot == slot_id) || (m_iActiveSlot == NO_ACTIVE_SLOT) && m_iNextActiveSlot == NO_ACTIVE_SLOT) && (!bNotActivate) && !IsSlotBlocked(slot_id))
 	{
 #ifdef DEBUG
 		Msg("---To Slot: activating slot [%d], Frame[%d]", slot_id, Device.dwFrame);
@@ -2016,6 +2017,21 @@ void CInventory::Items_SetCurrentEntityHud(bool current_entity)
 void CInventory::SetSlotsBlocked(u16 mask, bool bBlock)
 {
 	R_ASSERT(OnServer() || Level().IsDemoPlayStarted());
+
+	bool WasBlocked = false;
+	for (u16 i = FirstSlot(), ie = LastSlot(); i <= ie; ++i)
+	{
+		if ((mask & (1 << i)) && IsSlotBlocked(i))
+		{
+			WasBlocked = true;
+		}
+	}
+
+	// A first block with empty hands has nothing to restore: drop a stale previous slot, or it gets drawn on unblock
+	if (bBlock && !WasBlocked && GetActiveSlot() == NO_ACTIVE_SLOT && GetNextActiveSlot() == NO_ACTIVE_SLOT)
+	{
+		SetPrevActiveSlot(NO_ACTIVE_SLOT);
+	}
 
 	for (u16 i = FirstSlot(), ie = LastSlot(); i <= ie; ++i)
 	{
