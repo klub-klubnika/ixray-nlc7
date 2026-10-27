@@ -10,6 +10,9 @@
 #include "alife_graph_registry.h"
 #include "../xrEngine/x_ray.h"
 #include <Actor.h>
+#include "ai_space.h"
+#include "alife_simulator.h"
+#include "alife_object_registry.h"
 
 using namespace ALife;
 
@@ -163,7 +166,22 @@ void CALifeGraphRegistry::detach	(CSE_Abstract &object, CSE_ALifeInventoryItem *
 	CSE_ALifeDynamicObject		*dynamic_object = smart_cast<CSE_ALifeDynamicObject*>(&object);
 	R_ASSERT2					(!alife_query || dynamic_object,"Cannot detach an item from non-alife object");
 	
-	VERIFY						(alife_query || !smart_cast<CSE_ALifeDynamicObject*>(&object) || (ai().game_graph().vertex(smart_cast<CSE_ALifeDynamicObject*>(&object)->m_tGraphID)->level_id() == level().level_id()));
+#ifdef DEBUG
+	if (!alife_query && dynamic_object && ai().get_alife())
+	{
+		CSE_ALifeDynamicObject* Root = dynamic_object;
+		while (Root->ID_Parent != ALife::_OBJECT_ID(-1))
+		{
+			CSE_ALifeDynamicObject* Parent = ai().alife().objects().object(Root->ID_Parent, true);
+			if (Parent == nullptr)
+			{
+				break;
+			}
+			Root = Parent;
+		}
+		VERIFY(ai().game_graph().vertex(Root->m_tGraphID)->level_id() == level().level_id());
+	}
+#endif
 
 	if (dynamic_object)
 		dynamic_object->detach	(item,nullptr,alife_query,remove_children);
