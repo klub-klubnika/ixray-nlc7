@@ -95,7 +95,13 @@ bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
 		return false;
 	}
 
-	if (EngineExternal()[EEngineExternalGame::EnableStackWindow] || !fsimilar(object()->GetCondition(), ci->object()->GetCondition(), 0.01f))
+	CEatableItem* CiEatableItem = ci->object()->cast_eatable_item();
+	CEatableItem* EatableItem = object()->cast_eatable_item();
+
+	// Medicine without a condition bar stacks regardless of the hidden condition value; food keeps separate stacks by freshness
+	const bool IgnoreCondition = EatableItem != nullptr && CiEatableItem != nullptr && object()->cast_food_item() == nullptr && !object()->IsUsingCondition() && !ci->object()->IsUsingCondition();
+
+	if (EngineExternal()[EEngineExternalGame::EnableStackWindow] || (!IgnoreCondition && !fsimilar(object()->GetCondition(), ci->object()->GetCondition(), 0.01f)))
 	{
 		return false;
 	}
@@ -104,9 +110,6 @@ bool CUIInventoryCellItem::EqualTo(CUICellItem* itm)
 	{
 		return false;
 	}
-
-	CEatableItem* CiEatableItem = ci->object()->cast_eatable_item();
-	CEatableItem* EatableItem = object()->cast_eatable_item();
 
 	if (CiEatableItem != nullptr && EatableItem != nullptr && CiEatableItem->GetMaxUses() > 1 && EatableItem->GetMaxUses() > 1 && CiEatableItem->GetRemainingUses() != EatableItem->GetRemainingUses())
 	{
