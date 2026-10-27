@@ -34,6 +34,12 @@ CGameFont::CGameFont(const char* section, u32 flags) : Name(section), LineSpacin
 
 	uFlags = flags;
 
+	if (!pSettings->section_exist(section))
+	{
+		Msg("! Font section [%s] not found, [font_default] is used", section);
+		section = "font_default";
+	}
+
 	// Read font name
 	if (pSettings->line_exist(section, "name"))
 		Data.Name = xr_strdup(xr_strlwr((char*)pSettings->r_string(section, "name")));
@@ -225,7 +231,17 @@ void CGameFont::Initialize2(const char* name, const char* shader, const char* st
 		FS.update_path(DefPath, _game_fonts_, NameWithExt.c_str());
 		FontFile = FS.r_open(DefPath);
 
-		R_ASSERT3(FontFile != nullptr, "Can't find default font: %s", DefPath);
+		if (FontFile == nullptr && pSettings->line_exist("font_default", "name"))
+		{
+			string_path DefaultName;
+			xr_strcpy(DefaultName, pSettings->r_string("font_default", "name"));
+			xr_strlwr(DefaultName);
+			NameWithExt = CStringTable::LangName() + "\\" + DefaultName + ".ttf";
+			FS.update_path(DefPath, _game_fonts_, NameWithExt.c_str());
+			FontFile = FS.r_open(DefPath);
+		}
+
+		CHECK_OR_EXIT(FontFile != nullptr, make_string<const char*>("Can't find font file %s and no default font: %s", name, DefPath));
 	}
 
 	FT_Error FTError = FT_New_Memory_Face(FreetypeLib, (FT_Byte*)FontFile->pointer(), FontFile->length(), 0, &OurFont);
