@@ -865,14 +865,17 @@ void CUIMainIngameWnd::Update()
 		}
 	};
 
-	bool b_God = ( GodMode() || ( !lookat_player ) )? true : lookat_player->testFlag(GAME_PLAYER_FLAG_INVINCIBLE);
-	if ( b_God )
+	if (!ExternalIconControl)
 	{
-		SetWarningIconColor( ewiInvincible, 0xffffffff );
-	}
-	else
-	{
-		SetWarningIconColor( ewiInvincible, 0x00ffffff );
+		bool b_God = ( GodMode() || ( !lookat_player ) )? true : lookat_player->testFlag(GAME_PLAYER_FLAG_INVINCIBLE);
+		if ( b_God )
+		{
+			SetWarningIconColor( ewiInvincible, 0xffffffff );
+		}
+		else
+		{
+			SetWarningIconColor( ewiInvincible, 0x00ffffff );
+		}
 	}
 	
 	UpdateMainIndicators();
