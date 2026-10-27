@@ -3730,9 +3730,9 @@ ALife::_OBJECT_ID xrServer::PerformIDgen(ALife::_OBJECT_ID ID)
 			if (m_pending_delete_id_set.contains(elem.second))
 			{
 				// Rarely even after timeout client object still exists, so we cannot free ID yet
-				if (auto ExistingEntity = Level().Objects.net_Find(elem.second); 
-					!IVERIFY_M(!ExistingEntity, "Object with ID [%u] still exists despite free timeout [%u] is over!", elem.second, ID_delete_delay))
+				if (auto ExistingEntity = Level().Objects.net_Find(elem.second); ExistingEntity != nullptr)
 				{
+					Msg("~ Object with ID [%u] still exists despite free timeout [%u] is over, postponing", elem.second, ID_delete_delay);
 					auto PostponedID = elem.second;
 					m_pending_delete_id_queue.pop();
 					m_pending_delete_id_queue.emplace(CurTime, PostponedID);

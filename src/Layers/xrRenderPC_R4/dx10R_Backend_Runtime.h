@@ -181,17 +181,33 @@ IC void CBackend::ApplyVertexLayout()
 
 	if (it==decl->vs_to_layout.end())
 	{
-		ID3DInputLayout* pLayout;
+		ID3DInputLayout* pLayout = nullptr;
 
-		CHK_DX(RDevice->CreateInputLayout
+		const HRESULT Result = RDevice->CreateInputLayout
 		(
 			(D3D11_INPUT_ELEMENT_DESC*)decl->dx10_dcl_code.data(),
 			decl->dx10_dcl_code.size(),
 			m_pInputSignature->GetBufferPointer(),
 			m_pInputSignature->GetBufferSize(),
 			&pLayout
-			)
 		);
+
+		// A model whose vertex format lacks an input of the shader: report it once and draw without a layout instead of a fatal error
+		if (FAILED(Result))
+		{
+			string1024 Elements = {};
+			for (const RHIInputElementDesc& Element : decl->dx10_dcl_code)
+			{
+				if (Element.SemanticName != nullptr)
+				{
+					string64 Item;
+					xr_sprintf(Item, "%s%u ", Element.SemanticName, Element.SemanticIndex);
+					xr_strcat(Elements, Item);
+				}
+			}
+			Msg("! [error] CreateInputLayout failed (0x%08x): vertex shader [%s], vertex format { %s}", u32(Result), CurrentVS != nullptr ? CurrentVS->cName.c_str() : "?", Elements);
+			pLayout = nullptr;
+		}
 
 		it = decl->vs_to_layout.insert(
 			std::pair<ID3DBlob*, ID3DInputLayout*>(m_pInputSignature, pLayout)).first;

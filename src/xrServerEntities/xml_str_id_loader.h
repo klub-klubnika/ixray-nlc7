@@ -105,6 +105,12 @@ const ITEM_DATA* CSXML_IdToIndex::GetById (const shared_str& str_id, bool no_ass
 
 	if(m_pItemDataVector->end() == it)
 	{
+		if (no_assert)
+		{
+			// Callers that allow a miss only need the missing id, not the whole list
+			Msg("~ xml id [%s] not found", *str_id);
+			return NULL;
+		}
 #ifdef DEBUG
 		int i=0;
 		for(T_VECTOR::iterator it_ = m_pItemDataVector->begin();	m_pItemDataVector->end() != it_; it_++,i++)

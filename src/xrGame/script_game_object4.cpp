@@ -102,7 +102,8 @@ void CScriptGameObject::set_sound_mask(u32 sound_mask)
 	{
 		if (CEntityAlive* entity_alive = monster->cast_entity_alive())
 		{
-			VERIFY2(entity_alive->g_Alive(), "Stalker try talk after death!");
+			// Muting everything (-1) is allowed on death, scripts use it to cut the death scream
+			VERIFY2(entity_alive->g_Alive() || sound_mask == u32(-1), "Stalker try talk after death!");
 		}
 
 		monster->sound().set_sound_mask(sound_mask);
