@@ -116,6 +116,7 @@ xr_token quicksave_count_token[] =
 	{ "5",	5 },
 	{ "10",	10 },
 	{ "20",	20 },
+	{ "unlimited",	0 },
 	{ nullptr,	 0 }
 };
 
@@ -550,6 +551,35 @@ void get_files_list(xr_vector<shared_str>& files, const char* dir, const char* f
 #include "UIGameCustom.h"
 #include "HUDManager.h"
 
+namespace QuickSaveIndex
+{
+	// Highest "[N]" suffix among existing saves, 0 when there are none
+	int FindLast()
+	{
+		xr_vector<shared_str> Files;
+		get_files_list(Files, "$game_saves$", IXRAY_DEF_SAVE_EXTENSION);
+
+		int Last = 0;
+		for (const shared_str& File : Files)
+		{
+			const char* Name = File.c_str();
+			const char* Open = strrchr(Name, '[');
+			if (Open == nullptr)
+			{
+				continue;
+			}
+
+			char* End = nullptr;
+			const long Index = strtol(Open + 1, &End, 10);
+			if (End != Open + 1 && *End == ']' && End[1] == '\0' && Index > Last)
+			{
+				Last = static_cast<int>(Index);
+			}
+		}
+		return Last;
+	}
+}
+
 class CCC_ALifeSave : public IConsole_Command
 {
 private:
@@ -600,9 +630,10 @@ public:
 #endif
 		if (!xr_strlen(S)) {
 
-			++m_iQuickSave;
+			// 0: unlimited, every quick save gets the next number
+			m_iQuickSave = m_iQuickSavesCount == 0 ? QuickSaveIndex::FindLast() + 1 : m_iQuickSave + 1;
 			xr_sprintf(S, "%s - %s [%i]", Core.UserName, g_pStringTable->translate("quicksave").c_str(), m_iQuickSave);
-			if (m_iQuickSave >= m_iQuickSavesCount)
+			if (m_iQuickSavesCount != 0 && m_iQuickSave >= static_cast<int>(m_iQuickSavesCount))
 			{
 				m_iQuickSave = 0;
 			}
