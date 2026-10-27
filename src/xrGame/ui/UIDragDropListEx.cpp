@@ -589,12 +589,21 @@ bool CUIDragDropListEx::TryResizeItem(CUICellItem* Item, const Ivector2& Size)
 void CUIDragDropListEx::Compact()
 {
 	xrCriticalSectionGuard guard(m_container->csUi);
-	CUIWindow::WINDOW_LIST& wl = m_container->GetChildWndList();
+
+	// ClearAll detaches the cells, so take them before clearing and place them again in the same order
+	xr_vector<CUICellItem*> Items;
+	for (CUIWindow* child : m_container->GetChildWndList())
+	{
+		if (CUICellItem* itm = child->ui_cast_cell_item())
+		{
+			Items.push_back(itm);
+		}
+	}
+
 	ClearAll(false);
 
-	for (CUIWindow* child : wl)
+	for (CUICellItem* itm : Items)
 	{
-		CUICellItem* itm = child->ui_cast_cell_item();
 		SetItem(itm);
 	}
 }

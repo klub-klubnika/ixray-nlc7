@@ -293,7 +293,14 @@ void CUIActorMenuBase::OnInventoryAction(PIItem pItem, u16 action_type)
 							continue;
 
 						if (RemoveItemFromList(curr, pItem))
+						{
+							// Items leaving the actor (scripts hiding them into containers) must not leave holes in the bag
+							if (curr == GetActorList() && CUIDragDropListEx::m_drag_item == nullptr)
+							{
+								curr->Compact();
+							}
 							break;
+						}
 					}
 					if (!IsGameTypeSingle() && pItem->parent_id() != GetInventoryOwner()->object_id())
 						RemoveItemFromList(GetListByType(iDeadBodyBag), pItem);
