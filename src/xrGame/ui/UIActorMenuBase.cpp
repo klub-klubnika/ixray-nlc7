@@ -664,6 +664,16 @@ EDDListType CUIActorMenuBase::GetListType(CUIDragDropListEx* l)
 	return iInvalid;
 }
 
+namespace ActorMenuSlots
+{
+	// SoC style: equipped items whose slot has no cell in the window are not listed in the bag (grenades keep their own rule)
+	bool HideItemsWithoutList(u16 SlotId)
+	{
+		static const bool Hide = pSettings->read_if_exists<bool>("inventory", "hide_slot_items_without_list", false);
+		return Hide && SlotId != GRENADE_SLOT;
+	}
+}
+
 CUIDragDropListEx* CUIActorMenuBase::GetSlotList(u16 slot_idx)
 {
 	if (slot_idx == NO_ACTIVE_SLOT)
@@ -692,6 +702,11 @@ CUIDragDropListEx* CUIActorMenuBase::GetDisplayListForItem(PIItem item, const SI
 		const u16 slotId = place.slot_id;
 		if (IsSlotHiddenInUi(slotId))
 		{
+			if (ActorMenuSlots::HideItemsWithoutList(slotId))
+			{
+				return nullptr;
+			}
+
 			if (slotId == GRENADE_SLOT)
 			{
 				if (!ShouldDisplayGrenadeInBag())
@@ -985,7 +1000,7 @@ void CUIActorMenuBase::InitCellForSlot( u16 slot_idx )
 		return;
 	}
 
-	if (IsSlotHiddenInUi(slot_idx) && !item->VisibleInInventory())
+	if (IsSlotHiddenInUi(slot_idx) && (!item->VisibleInInventory() || ActorMenuSlots::HideItemsWithoutList(slot_idx)))
 	{
 		return;
 	}
