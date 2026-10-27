@@ -68,7 +68,10 @@ bool CUIButton::OnMouseAction(float x, float y, EUIMessages mouse_action)
 					SetButtonState(BUTTON_NORMAL);
 
 				if (Clicked)
+				{
 					OnClick();
+					return true;
+				}
 			}else 
 			if(mouse_action == WINDOW_MOUSE_MOVE)
 			{
