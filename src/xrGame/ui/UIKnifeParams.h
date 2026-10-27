@@ -37,4 +37,6 @@ protected:
 	CUIStatic				m_meters_name;
 	CUIStatic				m_textDistDelimiter;
 	CUIStatic				m_Prop_line;
+
+	bool					Loaded = false;
 };

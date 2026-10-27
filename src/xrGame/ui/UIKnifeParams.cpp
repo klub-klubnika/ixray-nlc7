@@ -58,6 +58,7 @@ void CUIKnifeParams::InitFromXml(CUIXml& xml_doc)
 
 	m_progressDamage.InitFromXml	( xml_doc, "knife_params:progress_damage" );
 	m_progressHandling.InitFromXml	( xml_doc, "knife_params:progress_handling" );
+	Loaded = true;
 }
 
 void CUIKnifeParams::SetInfo(CInventoryItem* slot_wpn, CInventoryItem& cur_wpn)
@@ -135,5 +136,5 @@ void CUIKnifeParams::SetInfo(CInventoryItem* slot_wpn, CInventoryItem& cur_wpn)
 bool CUIKnifeParams::Check(CInventoryItem& cur_wpn)
 {
 	CWeaponKnife* knife = cur_wpn.cast_weapon_knife();
-	return knife && knife->m_bShowKnifeStats;
+	return Loaded && knife && knife->m_bShowKnifeStats;
 }
