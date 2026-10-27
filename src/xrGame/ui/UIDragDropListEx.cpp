@@ -600,6 +600,15 @@ void CUIDragDropListEx::Compact()
 		}
 	}
 
+	const size_t TopCount = Items.size();
+	for (size_t i = 0; i < TopCount; ++i)
+	{
+		while (Items[i]->ChildsCount())
+		{
+			Items.push_back(Items[i]->PopChild(nullptr));
+		}
+	}
+
 	ClearAll(false);
 
 	for (CUICellItem* itm : Items)
