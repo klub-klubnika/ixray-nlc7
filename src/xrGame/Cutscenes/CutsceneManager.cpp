@@ -119,7 +119,7 @@ void CCutsceneManager::Update()
 
 void CCutsceneManager::Render()
 {
-	Device.seqParallel.emplace_back(this, &CCutsceneManager::Update);
+	Device.add_to_seq_parallel(xr_delegate<void()>(this, &CCutsceneManager::Update));
 	if (m_pCurrentCutscene) {
 		if (m_bToDelete)
 		{

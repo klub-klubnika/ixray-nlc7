@@ -724,7 +724,7 @@ void CLevel::OnFrame()
 
 	if (!g_dedicated_server)
 	{
-		Device.seqParallel.push_back(xr_make_delegate(m_map_manager, &CMapManager::Update));
+		Device.add_to_seq_parallel(xr_make_delegate(m_map_manager, &CMapManager::Update));
 	}
 	// Inherited update
 	inherited::OnFrame();
@@ -863,8 +863,8 @@ void CLevel::OnFrame()
 	g_pGamePersistent->Environment().SetGameTime(GetEnvironmentGameDayTimeSec(), game->GetEnvironmentGameTimeFactor());
 
 	// update static sounds & gc
-	Device.seqParallel.push_back(xr_make_delegate(m_level_sound_manager, &CLevelSoundManager::Update));
-	Device.seqParallel.push_back(xr_make_delegate(this, &CLevel::script_gc));
+	Device.add_to_seq_parallel(xr_make_delegate(m_level_sound_manager, &CLevelSoundManager::Update));
+	Device.add_to_seq_parallel(xr_make_delegate(this, &CLevel::script_gc));
 
 	//-----------------------------------------------------
 	if (pStatGraphR)

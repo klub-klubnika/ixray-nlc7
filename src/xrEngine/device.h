@@ -220,6 +220,7 @@ public:
 	CRegistrator	<pureFrame			>			seqFrameMT;
 	CRegistrator	<pureDeviceReset	>			seqDeviceReset;
 	xr_vector		<xr_delegate<void()>>	seqParallel;
+	xrCriticalSection						seqParallelLock;
 	xr_vector		<xr_delegate<void()>>	seqParallelRender;
 
 	xr_delegate<void()> ModelDefferClear;
@@ -282,8 +283,15 @@ public:
 	XRayWorkerThread PreRenderThread;
 	XRayWorkerThread GameThread;
 
+	ICF void add_to_seq_parallel(const xr_delegate<void()>& delegate)
+	{
+		xrCriticalSectionGuard Guard(seqParallelLock);
+		seqParallel.push_back(delegate);
+	}
+
 	ICF void remove_from_seq_parallel(const xr_delegate<void()>& delegate)
 	{
+		xrCriticalSectionGuard Guard(seqParallelLock);
 		xr_vector<xr_delegate<void()>>::iterator I = std::find(
 			seqParallel.begin(),
 			seqParallel.end(),

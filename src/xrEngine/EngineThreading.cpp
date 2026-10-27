@@ -76,11 +76,25 @@ void XRay::Engine::GameThread()
 
 	{
 		PROF_EVENT("seqParallel");
-		for (u32 pit = 0; pit < Device.seqParallel.size(); pit++)
+		u32 Processed = 0;
+		for (;;)
 		{
-			Device.seqParallel[pit]();
+			xr_delegate<void()> Task;
+			{
+				xrCriticalSectionGuard Guard(Device.seqParallelLock);
+				if (Processed >= Device.seqParallel.size())
+				{
+					break;
+				}
+				Task = Device.seqParallel[Processed];
+			}
+			++Processed;
+			Task();
 		}
-		Device.seqParallel.clear();
+
+		xrCriticalSectionGuard Guard(Device.seqParallelLock);
+		const u32 Count = std::min<u32>(Processed, u32(Device.seqParallel.size()));
+		Device.seqParallel.erase(Device.seqParallel.begin(), Device.seqParallel.begin() + Count);
 	}
 
 	{

@@ -144,7 +144,7 @@ void CALifeUpdateManager::shedule_Update(u32 dt)
 
 	if (!m_first_time)
 	{
-		Device.seqParallel.push_back(xr_delegate<void()>(this, &CALifeUpdateManager::update));
+		Device.add_to_seq_parallel(xr_delegate<void()>(this, &CALifeUpdateManager::update));
 		return;
 	}
 
