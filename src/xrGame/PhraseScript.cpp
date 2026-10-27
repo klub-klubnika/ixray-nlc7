@@ -80,7 +80,12 @@ void  CDialogScriptHelper::LoadSequence (CUIXml* uiXml, XML_NODE* phrase_node,
 	for(int i=0; i<tag_num; ++i)
 	{
 		const char* tag_text = uiXml->Read(phrase_node, tag, i, nullptr);
-		str_vector.push_back(tag_text);
+		xr_string Text = tag_text != nullptr ? tag_text : "";
+		_Trim(Text);
+		if (!Text.empty())
+		{
+			str_vector.push_back(Text.c_str());
+		}
 	}
 }
 
