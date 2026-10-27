@@ -1208,8 +1208,10 @@ void CUICellContainer::GetTexUVLT(Fvector2& uv, u32 col, u32 row, u8 select_mode
 		// Slide the sampling window within each 0.25 select strip so repeating vertical atlas detail does not line up across cells.
 		const u32 mix = col * 0x9E3779B9u + row * 0x85EBCA6Bu;
 		const float t = float(mix % 1024u) / 1023.0f;
-		const float slideRoom = 0.25f - kInventoryCellUSpanGridDisabled;
-		uv.set(sliceStart + t * slideRoom, 0.0f);
+		// Keep a texel away from the strip edges: bilinear filtering at u=0 wraps in the last strip and draws a line on big cells
+		constexpr float EdgeInset = 1.0f / 256.0f;
+		const float slideRoom = 0.25f - kInventoryCellUSpanGridDisabled - 2.0f * EdgeInset;
+		uv.set(sliceStart + EdgeInset + t * slideRoom, 0.0f);
 	}
 	else
 	{
