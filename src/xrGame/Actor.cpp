@@ -58,6 +58,7 @@
 #include "HudVertexAssignedPatricles.h"
 #include "ai/monsters/controller/controller_psy_hit.h"
 #include "ui/UIGameTutorial.h"
+#include "InventoryContainer.h"
 
 namespace
 {
@@ -3422,6 +3423,30 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
 		update_time		= 0.0f;
 	}
 
+	const static bool RadiationFromRuck = EngineExternal()[EEngineExternalGame::EnableArtefactsRadiationFromRuck];
+	if (RadiationFromRuck)
+	{
+		TIItemContainer CarriedItems = inventory().m_all;
+		for (const PIItem item : inventory().m_all)
+		{
+			if (const CInventoryContainer* Container = smart_cast<const CInventoryContainer*>(item))
+			{
+				Container->AddAvailableItems(CarriedItems);
+			}
+		}
+
+		for (const PIItem item : CarriedItems)
+		{
+			CArtefact* artefact = item->cast_artefact();
+			if (artefact != nullptr && artefact->m_fRadiationRestoreSpeed > 0.0f)
+			{
+				float val = artefact->m_fRadiationRestoreSpeed - conditions().GetBoostRadiationImmunity();
+				clamp(val, 0.0f, val);
+				conditions().ChangeRadiation(val * f_update_time);
+			}
+		}
+	}
+
 	const bool artefactsHaveEffect = ArtefactsHaveEffect();
 	for (const PIItem item : inventory().m_belt)
 	{
@@ -3439,15 +3464,19 @@ void CActor::UpdateArtefactsOnBeltAndOutfit()
 				conditions().ChangeSleepiness((artefact->m_fSleepinessRestoreSpeed * art_cond) * f_update_time);
 			}
 
-			if ((artefact->m_fRadiationRestoreSpeed * art_cond) > 0.0f)
+			const float Radiation = artefact->m_fRadiationRestoreSpeed * art_cond;
+			if (Radiation > 0.0f)
 			{
-				float val = (artefact->m_fRadiationRestoreSpeed * art_cond) - conditions().GetBoostRadiationImmunity();
-				clamp(val, 0.0f, val);
-				conditions().ChangeRadiation(val * f_update_time);
+				if (!RadiationFromRuck)
+				{
+					float val = Radiation - conditions().GetBoostRadiationImmunity();
+					clamp(val, 0.0f, val);
+					conditions().ChangeRadiation(val * f_update_time);
+				}
 			}
 			else
 			{
-				conditions().ChangeRadiation((artefact->m_fRadiationRestoreSpeed * art_cond) * f_update_time);
+				conditions().ChangeRadiation(Radiation * f_update_time);
 			}
 		}
 	}
