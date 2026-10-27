@@ -24,7 +24,7 @@ IC void CWorldState::add_condition(const CWorldProperty& condition)
 		m_hash ^= condition.hash_value();
 	}
 #ifdef DEBUG
-	else
+	else if ((*I).value() != condition.value())
 	{
 		Msg("! duplicate world property [%u] (kept [%d], ignored [%d])", condition.condition(), (*I).value(), condition.value());
 	}
