@@ -62,11 +62,13 @@ bool CUIButton::OnMouseAction(float x, float y, EUIMessages mouse_action)
 		{
 			if(mouse_action == WINDOW_LBUTTON_UP)
 			{
-				if(m_bCursorOverWindow)
-					OnClick();
-			
+				const bool Clicked = m_bCursorOverWindow;
+
 				if (!m_bIsSwitch)
 					SetButtonState(BUTTON_NORMAL);
+
+				if (Clicked)
+					OnClick();
 			}else 
 			if(mouse_action == WINDOW_MOUSE_MOVE)
 			{
