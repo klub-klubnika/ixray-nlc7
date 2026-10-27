@@ -65,6 +65,7 @@ Fvector2 CalcInvCellAnchorPos(
 } // namespace
 
 CUICellItem* CUICellItem::m_mouse_selected_item = nullptr;
+CUICellItem* CUICellItem::ClickedItem = nullptr;
 
 CUICellItem::CUICellItem()
 {	Icon3dAdjust_RegisterCell(this);
@@ -104,6 +105,11 @@ CUICellItem::CUICellItem()
 CUICellItem::~CUICellItem()
 {
 	Icon3dAdjust_UnregisterCell(this);
+
+	if (ClickedItem == this)
+	{
+		ClickedItem = nullptr;
+	}
 
 	if (m_b_destroy_childs) 
 	{

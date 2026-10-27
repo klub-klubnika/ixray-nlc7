@@ -108,6 +108,8 @@ public:
 	CUIXml& GetXml() { return uiXml;};
 public:
 	static CUICellItem*		m_mouse_selected_item;
+	// Item chosen by a click in the inventory window, highlighted until another one is chosen; compared only, never dereferenced
+	static CUICellItem*		ClickedItem;
 				void*		m_pData;
 				int			m_index;
 				u32			m_drawn_frame;

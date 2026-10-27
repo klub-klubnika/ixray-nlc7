@@ -1495,7 +1495,7 @@ void CUICellContainer::Draw()
 				{
 					select_mode = 2;
 				}
-				else if ( ui_cell.m_item->m_selected )
+				else if ( ui_cell.m_item->m_selected || ui_cell.m_item == CUICellItem::ClickedItem )
 				{
 					select_mode = 1;
 				}

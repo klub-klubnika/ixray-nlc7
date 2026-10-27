@@ -331,6 +331,7 @@ void CUICarBodyWnd::EnableAll()
 void CUICarBodyWnd::SetCurrentItem(CUICellItem* itm)
 {
 	m_pCurrentCellItem		= itm;
+	CUICellItem::ClickedItem = itm;
 	m_ItemInfo->InitItem(CurrentItem(), nullptr, CurrentIItem() ? CurrentIItem()->Cost() : u32(-1), nullptr, true);
 	TryHidePropertiesBox();
 }

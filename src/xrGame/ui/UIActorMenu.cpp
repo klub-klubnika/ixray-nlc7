@@ -505,6 +505,7 @@ void CUIActorMenu::SetCurrentItem(CUICellItem* itm)
 	}
 	m_repair_mode = 0;
 	m_pCurrentCellItem = itm;
+	CUICellItem::ClickedItem = itm;
 	if ( !itm )
 	{
 		InfoCurItem( nullptr );
