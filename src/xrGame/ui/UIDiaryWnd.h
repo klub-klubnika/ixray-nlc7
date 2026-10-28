@@ -12,6 +12,7 @@ class CUIStatic;
 class CUITabControl;
 class CUIScrollView;
 class CUIListWnd;
+class CUITreeViewItem;
 class CEncyclopediaArticle;
 class CUIGamepadLegend;
 class CPdaUiSounds;
@@ -23,6 +24,7 @@ class CUIDiaryWnd: public CUIWindow, public CUIWndCallback
 //			eInfo,
 			eJournal=0,
 			eNews,
+			eEncyclopedia,
 			eNone
 	};
 protected:
@@ -36,7 +38,7 @@ protected:
 	CUIFrameLineWnd*	m_UILeftHeader;
 	CUIFrameWindow*		m_UIRightFrame;
 	CUIFrameLineWnd*	m_UIRightHeader;
-	CUIAnimatedStatic*	m_UIAnimation;
+	CUIAnimatedStatic*	m_UIAnimation = nullptr;
 	CUIListWnd*			m_SrcListWnd;
 	CUIScrollView*		m_DescrView;
 	CGameFont*			m_pTreeRootFont;
@@ -44,10 +46,12 @@ protected:
 	CGameFont*			m_pTreeItemFont;
 	u32					m_uTreeItemColor;
 	CPdaUiSounds*		m_pUiSounds = nullptr;
+	shared_str			TreeHighlightTexture;
+	Frect				TreeHighlightRect{};
 
 	xr_vector<Fvector2>	m_sign_places;
-	CUIStatic*			m_updatedSectionImage;
-	CUIStatic*			m_oldSectionImage;
+	CUIStatic*			m_updatedSectionImage = nullptr;
+	CUIStatic*			m_oldSectionImage = nullptr;
 
 	typedef xr_vector<CEncyclopediaArticle*>			ArticlesDB;
 	typedef xr_vector<CEncyclopediaArticle*>::iterator	ArticlesDB_it;
@@ -60,6 +64,8 @@ protected:
 			void		UnloadNewsTab			();
 			void		LoadNewsTab				();
 			void		Reload					(EDiaryFilter new_filter);
+			EDiaryFilter	ActiveFilter			() const;
+			void		ApplyTreeHighlight		(CUITreeViewItem* Item);
 			void		UpdateGamepadLegend		();
 public:
 	CUITabControl*		m_FilterTab;

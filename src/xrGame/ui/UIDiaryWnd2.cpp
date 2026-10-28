@@ -8,6 +8,7 @@
 #include "../../xrUI/UIXmlInit.h"
 #include "object_broker.h"
 #include "../../xrUI/Widgets/UITabControl.h"
+#include "../../xrUI/Widgets/UITabButton.h"
 #include "../../xrUI/Widgets/UIScrollView.h"
 #include "../../xrUI/Widgets/UIListWnd.h"
 #include "../../xrUI/Widgets/UITreeViewItem.h"
@@ -21,6 +22,11 @@
 #include "../../xrUI/Widgets/UIGamepadLegend.h"
 
 extern u32			g_pda_info_state;
+
+namespace
+{
+constexpr const char* DiaryEncyclopediaTabId = "encyclopedia";
+}
 
 CUIDiaryWnd::CUIDiaryWnd()
 {
@@ -46,7 +52,7 @@ void CUIDiaryWnd::Show(bool status)
 {
 	inherited::Show		(status);
 	if(status)
-		Reload( (EDiaryFilter)m_FilterTab->GetActiveIndex() );
+		Reload(ActiveFilter());
 }
 
 void RearrangeTabButtonsLegacy(CUITabControl* pTab, xr_vector<Fvector2>& vec_sign_places);
@@ -74,9 +80,12 @@ void CUIDiaryWnd::Init()
 	Register						(m_FilterTab);
     AddCallbackStr					("filter_tab", TAB_CHANGED, CUIWndCallback::void_function(this, &CUIDiaryWnd::OnFilterChanged));
 
-	m_UIAnimation					= new CUIAnimatedStatic(); m_UIAnimation->SetAutoDelete(true);
-	xml_init.InitAnimatedStatic		(uiXml, "main_wnd:left_frame:left_frame_header:anim_static", 0, m_UIAnimation);
-	m_UILeftHeader->AttachChild		(m_UIAnimation);
+	if (uiXml.NavigateToNode("main_wnd:left_frame:left_frame_header:anim_static", 0))
+	{
+		m_UIAnimation					= new CUIAnimatedStatic(); m_UIAnimation->SetAutoDelete(true);
+		xml_init.InitAnimatedStatic		(uiXml, "main_wnd:left_frame:left_frame_header:anim_static", 0, m_UIAnimation);
+		m_UILeftHeader->AttachChild		(m_UIAnimation);
+	}
 
 
 	m_UILeftWnd						= new CUIWindow(); m_UILeftWnd->SetAutoDelete(true);
@@ -93,6 +102,16 @@ void CUIDiaryWnd::Init()
 	R_ASSERT						(m_pTreeItemFont);
 	xml_init.InitFont				(uiXml, "main_wnd:left_frame:work_area:src_list:tree_root_font", 0, m_uTreeRootColor, m_pTreeRootFont);
 	R_ASSERT						(m_pTreeRootFont);
+
+	constexpr const char* TreeHighlightPath = "main_wnd:left_frame:work_area:src_list:tree_item_highlight";
+	if (uiXml.NavigateToNode(TreeHighlightPath, 0))
+	{
+		TreeHighlightTexture = uiXml.Read(TreeHighlightPath, 0, "");
+		TreeHighlightRect.x1 = uiXml.ReadAttribFlt(TreeHighlightPath, 0, "x", 0.0f);
+		TreeHighlightRect.y1 = uiXml.ReadAttribFlt(TreeHighlightPath, 0, "y", 0.0f);
+		TreeHighlightRect.x2 = uiXml.ReadAttribFlt(TreeHighlightPath, 0, "width", m_SrcListWnd->GetWidth());
+		TreeHighlightRect.y2 = uiXml.ReadAttribFlt(TreeHighlightPath, 0, "height", m_SrcListWnd->GetItemHeight());
+	}
 
 	m_UIRightFrame					= new CUIFrameWindow();		m_UIRightFrame->SetAutoDelete(true);
 	xml_init.InitFrameWindow		(uiXml,"main_wnd:right_frame",0,m_UIRightFrame);
@@ -112,14 +131,16 @@ void CUIDiaryWnd::Init()
 	m_DescrView						= new CUIScrollView(); m_DescrView->SetAutoDelete(false);
 	xml_init.InitScrollView			(uiXml, "main_wnd:right_frame:work_area:scroll_view", 0, m_DescrView);
 
-	m_updatedSectionImage			= new CUIStatic();
-	xml_init.InitStatic				(uiXml, "updated_section_static", 0, m_updatedSectionImage);
+	if (uiXml.NavigateToNode("updated_section_static", 0) && uiXml.NavigateToNode("old_section_static", 0))
+	{
+		m_updatedSectionImage			= new CUIStatic();
+		xml_init.InitStatic				(uiXml, "updated_section_static", 0, m_updatedSectionImage);
 
-	m_oldSectionImage				= new CUIStatic();
-	xml_init.InitStatic				(uiXml, "old_section_static", 0, m_oldSectionImage);
-	m_gamepad_legend				= UIHelper::CreateGamepadLegend(uiXml, "gamepad_legend", this, false);
-
+		m_oldSectionImage				= new CUIStatic();
+		xml_init.InitStatic				(uiXml, "old_section_static", 0, m_oldSectionImage);
+	}
 	RearrangeTabButtonsLegacy		(m_FilterTab, m_sign_places);
+	m_gamepad_legend				= UIHelper::CreateGamepadLegend(uiXml, "gamepad_legend", this, false);
 
 	if (m_pUiSounds)
 	{
@@ -139,7 +160,17 @@ void CUIDiaryWnd::OnFilterChanged			(CUIWindow* w, void*)
 	{
 		m_pUiSounds->Play(EPdaUiSound::Tab);
 	}
-	Reload( (EDiaryFilter)m_FilterTab->GetActiveIndex() );
+	Reload(ActiveFilter());
+}
+
+CUIDiaryWnd::EDiaryFilter CUIDiaryWnd::ActiveFilter() const
+{
+	const shared_str& ActiveId = m_FilterTab->GetActiveId();
+	if (ActiveId.size() && !xr_strcmp(ActiveId.c_str(), DiaryEncyclopediaTabId))
+	{
+		return eEncyclopedia;
+	}
+	return (EDiaryFilter)m_FilterTab->GetActiveIndex();
 }
 
 void CUIDiaryWnd::Reload	(EDiaryFilter new_filter)
@@ -154,6 +185,7 @@ void CUIDiaryWnd::Reload	(EDiaryFilter new_filter)
 
 	switch (m_currFilter){
 		case eJournal:
+		case eEncyclopedia:
 			UnloadJournalTab	();
 			break;
 		case eNews:
@@ -166,6 +198,9 @@ void CUIDiaryWnd::Reload	(EDiaryFilter new_filter)
 	switch (m_currFilter){
 		case eJournal:
 			LoadJournalTab	(ARTICLE_DATA::eJournalArticle);
+			break;
+		case eEncyclopedia:
+			LoadJournalTab	(ARTICLE_DATA::eEncyclopediaArticle);
 			break;
 		case eNews:
 			LoadNewsTab	();
@@ -211,7 +246,6 @@ void CUIDiaryWnd::LoadJournalTab			(ARTICLE_DATA::EArticleType _type)
 		for(; it != Actor()->encyclopedia_registry->registry().objects_ptr()->end(); it++)
 		{
 			if (_type == it->article_type)
-				
 			{
 				m_ArticlesDB.resize(m_ArticlesDB.size() + 1);
 				CEncyclopediaArticle*& a = m_ArticlesDB.back();
@@ -223,8 +257,34 @@ void CUIDiaryWnd::LoadJournalTab			(ARTICLE_DATA::EArticleType _type)
 			}
 		}
 	}
-	g_pda_info_state	&=	~pda_section::journal;
+
+	for (int i = 0; i < m_SrcListWnd->GetItemsCount(); ++i)
+	{
+		ApplyTreeHighlight(m_SrcListWnd->GetItem(i)->ui_cast_tree_view_item());
+	}
+
+	g_pda_info_state	&=	~(_type == ARTICLE_DATA::eEncyclopediaArticle ? pda_section::encyclopedia : pda_section::journal);
 	UpdateGamepadLegend();
+}
+
+void CUIDiaryWnd::ApplyTreeHighlight(CUITreeViewItem* Item)
+{
+	if (!Item || !TreeHighlightTexture.size())
+	{
+		return;
+	}
+
+	Item->UIBkg.InitTexture(TreeHighlightTexture.c_str());
+	Item->UIBkg.SetStretchTexture(true);
+	Item->UIBkg.SetTextureOffset(0.0f, 0.0f);
+	Item->UIBkg.SetWndPos(Fvector2().set(TreeHighlightRect.x1, TreeHighlightRect.y1));
+	Item->UIBkg.SetWndSize(Fvector2().set(TreeHighlightRect.x2, TreeHighlightRect.y2));
+	Item->UIBkg.TextureOff();
+
+	for (CUITreeViewItem* SubItem : Item->vSubItems)
+	{
+		ApplyTreeHighlight(SubItem);
+	}
 }
 
 void CUIDiaryWnd::UnloadNewsTab	()
@@ -257,22 +317,21 @@ void CUIDiaryWnd::OnSrcListItemClicked	(CUIWindow* w,void* p)
 		m_DescrView->AddWindow		(article_info, true);
 
 		// Пометим как прочитанную
-		if (!pSelItem->IsArticleReaded())
+		const ARTICLE_DATA::EArticleType ArticleType = (m_currFilter == eEncyclopedia) ? ARTICLE_DATA::eEncyclopediaArticle : ARTICLE_DATA::eJournalArticle;
+		if (Actor()->encyclopedia_registry->registry().objects_ptr())
 		{
-			if (Actor()->encyclopedia_registry->registry().objects_ptr())
+			for (ARTICLE_VECTOR::iterator it = Actor()->encyclopedia_registry->registry().objects().begin();
+				it != Actor()->encyclopedia_registry->registry().objects().end(); it++)
 			{
-				for (ARTICLE_VECTOR::iterator it = Actor()->encyclopedia_registry->registry().objects().begin();
-					it != Actor()->encyclopedia_registry->registry().objects().end(); it++)
+				if (ArticleType == it->article_type &&
+					m_ArticlesDB[pSelItem->GetValue()]->Id() == it->article_id)
 				{
-					if (ARTICLE_DATA::eJournalArticle == it->article_type &&
-						m_ArticlesDB[pSelItem->GetValue()]->Id() == it->article_id)
-					{
-						it->readed = true;
-						break;
-					}
+					it->readed = true;
+					break;
 				}
 			}
 		}
+		pSelItem->MarkArticleAsRead(true);
 	}
 }
 
@@ -281,28 +340,31 @@ void CUIDiaryWnd::Draw()
 {
 	inherited::Draw	();
 
+	if (!m_updatedSectionImage || !m_oldSectionImage)
+	{
+		return;
+	}
+
 	m_updatedSectionImage->Update				();
 	m_oldSectionImage->Update					();
 
 	Fvector2									tab_pos;
 	m_FilterTab->GetAbsolutePos					(tab_pos);
 
-	Fvector2 pos;
+	const u32 SignCount = (u32)m_sign_places.size();
+	for (u32 i = 0; i < SignCount; ++i)
+	{
+		pda_section::part Section = (i == eNews) ? pda_section::news : pda_section::journal;
+		const CUITabButton* Button = m_FilterTab->GetButtonByIndex(i);
+		if (Button && Button->m_btn_id.size() && !xr_strcmp(Button->m_btn_id.c_str(), DiaryEncyclopediaTabId))
+		{
+			Section = pda_section::encyclopedia;
+		}
 
-	pos		= m_sign_places[eNews];
-	pos.add(tab_pos);
-	if (g_pda_info_state & pda_section::news)
-		draw_sign								(m_updatedSectionImage, pos);
-	else
-		draw_sign								(m_oldSectionImage, pos);
-	
-
-	pos		= m_sign_places[eJournal];
-	pos.add(tab_pos);
-	if (g_pda_info_state & pda_section::journal)
-		draw_sign								(m_updatedSectionImage, pos);
-	else
-		draw_sign								(m_oldSectionImage, pos);
+		Fvector2 pos = m_sign_places[i];
+		pos.add(tab_pos);
+		draw_sign((g_pda_info_state & Section) ? m_updatedSectionImage : m_oldSectionImage, pos);
+	}
 }
 
 void CUIDiaryWnd::Reset()
