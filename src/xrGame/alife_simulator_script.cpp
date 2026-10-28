@@ -424,6 +424,15 @@ void set_objects_per_update(CALifeSimulator* self, u32 count)
 	self->objects_per_update(count);
 }
 
+void SwitchObject(CALifeSimulator* Self, ALife::_OBJECT_ID Id)
+{
+	CSE_ALifeDynamicObject* Object = Self->objects().object(Id, true);
+	if (Object)
+	{
+		Self->switch_object(Object);
+	}
+}
+
 void AlifeGiveInfo(const CALifeSimulator *alife, const ALife::_OBJECT_ID &id, const char* info_id)
 {
 	auto known_info = alife->registry().get<CInfoPortionRegistry>().object(id, true);
@@ -606,6 +615,7 @@ void CALifeSimulator::script_register			(lua_State *L)
 			.def("clone_weapon", &try_to_clone_object)
 			.def("register", &reprocess_spawn)
 			.def("set_objects_per_update", &set_objects_per_update)
+			.def("switch_object", &SwitchObject)
 			.def("set_process_time", &CALifeSimulator::set_process_time)
 			.def("get_children", &get_children, return_stl_iterator),
 
