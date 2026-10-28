@@ -55,6 +55,15 @@
 
 extern u32 hud_adj_mode;
 
+namespace
+{
+bool IsPdaShown()
+{
+	CUIGameCustom* GameUI = CurrentGameUI();
+	return GameUI != nullptr && GameUI->PdaMenu() != nullptr && GameUI->PdaMenu()->IsShown();
+}
+} // namespace
+
 void CActor::IR_OnKeyboardPress(int dik)
 {
 	if (IsCameraFocusInputLocked())
@@ -286,7 +295,7 @@ void CActor::IR_OnKeyboardPress(int dik)
 	case kUSE_BANDAGE:
 	case kUSE_MEDKIT:
 	{
-		if (IsGameTypeSingle())
+		if (IsGameTypeSingle() && !IsPdaShown())
 		{
 			PIItem itm = inventory().item((bind == kUSE_BANDAGE) ? CLSID_IITEM_BANDAGE : CLSID_IITEM_MEDKIT);
 			if (itm)
@@ -304,7 +313,10 @@ void CActor::IR_OnKeyboardPress(int dik)
 	case kQUICK_USE_3:
 	case kQUICK_USE_4:
 	{
-		ActorQuickSlotUse(bind);
+		if (!IsPdaShown())
+		{
+			ActorQuickSlotUse(bind);
+		}
 	}
 	break;
 	case kSHOW_QUICK_SLOTS:
@@ -1158,7 +1170,7 @@ void CActor::IR_GamepadKeyPress(int id)
 		case kUSE_BANDAGE:
 		case kUSE_MEDKIT:
 		{
-			if (IsGameTypeSingle())
+			if (IsGameTypeSingle() && !IsPdaShown())
 			{
 				PIItem itm = inventory().item((bind == kUSE_BANDAGE) ? CLSID_IITEM_BANDAGE : CLSID_IITEM_MEDKIT);
 				if (itm)
@@ -1176,7 +1188,7 @@ void CActor::IR_GamepadKeyPress(int id)
 		case kQUICK_USE_3:
 		case kQUICK_USE_4:
 		{
-			if (!IsZoomAimingMode())
+			if (!IsZoomAimingMode() && !IsPdaShown())
 				ActorQuickSlotUse(bind);
 			break;
 		}
