@@ -15,6 +15,11 @@ namespace
 {
 constexpr float kItemHeightPadding = 6.f;
 
+bool HasLocalizedNameTag(const shared_str& Caption)
+{
+	return Caption.size() && strstr(Caption.c_str(), ":lname_");
+}
+
 bool IsVerticalStackAlignment(CUIStackPanel::EStackPanelAlignment alignment)
 {
 	return alignment == CUIStackPanel::eTop
@@ -359,7 +364,7 @@ void CUINewsItemWnd::UpdateStackedLayoutHeight()
 
 void CUINewsItemWnd::ApplyNewsTexture(GAME_NEWS_DATA& newsData)
 {
-	if (!_uiImage)
+	if (!_uiImage || !newsData.texture_name.size())
 	{
 		return;
 	}
@@ -398,7 +403,7 @@ void CUINewsItemWnd::SetupLegacy(GAME_NEWS_DATA& newsData)
 
 		if (_uiCaption)
 		{
-			if (strstr(newsData.news_caption.c_str(), ":lname_"))
+			if (HasLocalizedNameTag(newsData.news_caption))
 			{
 				_uiCaption->SetText(TranslateName(newsData.news_caption.c_str()).c_str());
 			}
@@ -445,7 +450,7 @@ void CUINewsItemWnd::SetupLegacy(GAME_NEWS_DATA& newsData)
 
 	if (_uiCaption)
 	{
-		if (strstr(newsData.news_caption.c_str(), ":lname_"))
+		if (HasLocalizedNameTag(newsData.news_caption))
 		{
 			_uiCaption->SetText(TranslateName(newsData.news_caption.c_str()).c_str());
 		}
@@ -456,13 +461,24 @@ void CUINewsItemWnd::SetupLegacy(GAME_NEWS_DATA& newsData)
 		LayoutCaptionAfterDate();
 	}
 
-	xr_string outText = newsData.news_text.c_str(); 
+	const xr_string newsText = newsData.news_text.size() ? newsData.news_text.c_str() : "";
+	xr_string outText = newsText;
 	if (!_uiCaption && newsData.m_type == GAME_NEWS_DATA::eTalk)
 	{
 		outText = "#";
-		outText += strstr(newsData.news_caption.c_str(), ":lname_") ? TranslateName(newsData.news_caption.c_str()).c_str() : newsData.news_caption.c_str();
+		if (HasLocalizedNameTag(newsData.news_caption))
+		{
+			outText += TranslateName(newsData.news_caption.c_str()).c_str();
+		}
+		else if (newsData.news_caption.size())
+		{
+			outText += newsData.news_caption.c_str();
+		}
 		outText += "# >> ";
-		outText += xr_string(newsData.news_text.c_str()).substr(19);
+		if (newsText.size() > 19)
+		{
+			outText += newsText.substr(19);
+		}
 	}
 	_uiText->SetText(g_pStringTable->ParseStringFromScript(outText.c_str()).c_str());
 	_uiText->AdjustHeightToText();
@@ -517,7 +533,7 @@ void CUINewsItemWnd::SetupStacked(GAME_NEWS_DATA& newsData)
 
 		if (_uiCaption)
 		{
-			if (strstr(newsData.news_caption.c_str(), ":lname_"))
+			if (HasLocalizedNameTag(newsData.news_caption))
 			{
 				_uiCaption->SetText(TranslateName(newsData.news_caption.c_str()).c_str());
 			}
@@ -563,7 +579,7 @@ void CUINewsItemWnd::SetupStacked(GAME_NEWS_DATA& newsData)
 
 		if (_uiCaption)
 		{
-			if (strstr(newsData.news_caption.c_str(), ":lname_"))
+			if (HasLocalizedNameTag(newsData.news_caption))
 			{
 				_uiCaption->SetText(TranslateName(newsData.news_caption.c_str()).c_str());
 			}
