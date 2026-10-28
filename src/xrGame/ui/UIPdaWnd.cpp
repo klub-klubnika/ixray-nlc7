@@ -593,7 +593,7 @@ void CUIPdaWnd::Update()
 
 	if (pUILogsWnd && IsShown())
 	{
-		Device.add_to_seq_parallel(xr_make_delegate(pUILogsWnd, &CUILogsWnd::PerformWork));
+		pUILogsWnd->PerformWork();
 	}
 }
 
