@@ -42,10 +42,14 @@ bool resolveMapZoomScaleXmlPath(CUIXml& uiXml, const char* startFrom, string512&
 }
 } // namespace
 
-CUIMapWnd* g_map_wnd = nullptr; // quick temporary solution -(
-CUIMapWnd* GetMapWnd()
+static xr_vector<CUIMapWnd*> MapWnds;
+
+void MapWndsLocationRelcase(CMapLocation* ml)
 {
-	return g_map_wnd;
+	for (CUIMapWnd* Wnd : MapWnds)
+	{
+		Wnd->MapLocationRelcase(ml);
+	}
 }
 
 CUIMapWnd::CUIMapWnd()
@@ -67,7 +71,7 @@ CUIMapWnd::CUIMapWnd()
 	m_nav_timing			= Device.dwTimeGlobal;
 	hint_wnd				= nullptr;
 	m_text_hint				= nullptr;
-	g_map_wnd				= this;
+	MapWnds.push_back		(this);
 
 	for (u8 i = 0; i < max_btn_nav; ++i)
 		m_btn_nav[i] = nullptr;
@@ -83,7 +87,7 @@ CUIMapWnd::~CUIMapWnd()
 	delete_data( m_text_hint );
 	xr_delete( _zoomScale );
 
-	g_map_wnd				= nullptr;
+	MapWnds.erase			(std::remove(MapWnds.begin(), MapWnds.end(), this), MapWnds.end());
 }
 
 

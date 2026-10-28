@@ -461,13 +461,11 @@ void CGameTaskManager::SetActiveTask(CGameTask* task)
 	SetActiveTask(task, task->ActiveObjectiveIdx());
 }
 
-CUIMapWnd* GetMapWnd();
+void MapWndsLocationRelcase(CMapLocation* ml);
 
 void CGameTaskManager::MapLocationRelcase(CMapLocation* ml)
 {
-	CUIMapWnd* mwnd = GetMapWnd();
-	if(mwnd)
-		mwnd->MapLocationRelcase(ml);
+	MapWndsLocationRelcase(ml);
 
 	CGameTask* gt = HasGameTask(ml, false);
 	if(gt)
