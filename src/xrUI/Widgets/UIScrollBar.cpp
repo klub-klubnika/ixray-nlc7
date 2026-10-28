@@ -161,7 +161,12 @@ void CUIScrollBar::Show(bool show)
 	{
 		return;
 	}
+	const bool WasShown = IsShown();
 	ScrollBarBase::Show(show);
+	if (show && !WasShown)
+	{
+		UpdateScrollBar();
+	}
 }
 
 void CUIScrollBar::Enable(bool enable)
