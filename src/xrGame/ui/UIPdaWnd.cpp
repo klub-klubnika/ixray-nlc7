@@ -678,7 +678,11 @@ void CUIPdaWnd::ApplyActiveSubdialog(const shared_str& tabButtonSection, const s
 
 void CUIPdaWnd::SetActiveSubdialog(const shared_str& section)
 {
-	const shared_str resolvedSection = ResolveKnownTabId(section);
+	shared_str resolvedSection = ResolveKnownTabId(section);
+	if (PdaSectionId::Equals(resolvedSection, PdaSectionId::Map) && !pUIMapWnd && pUITaskWnd)
+	{
+		resolvedSection = ResolveKnownTabId(PdaSectionId::Tasks);
+	}
 
 	if (m_pActiveDialog)
 	{
@@ -874,16 +878,16 @@ void CUIPdaWnd::Draw()
 
 void CUIPdaWnd::DrawHint()
 {
-	if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::Tasks)
-		|| PdaSectionId::Equals(m_sActiveSection, PdaSectionId::TaskList))
+	if ((PdaSectionId::Equals(m_sActiveSection, PdaSectionId::Tasks)
+		|| PdaSectionId::Equals(m_sActiveSection, PdaSectionId::TaskList)) && pUITaskWnd)
 	{
 		pUITaskWnd->DrawHint();
 	}
-	else if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::Quests))
+	else if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::Quests) && pUIEventsWnd)
 	{
 		pUIEventsWnd->DrawHint();
 	}
-	else if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::Map))
+	else if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::Map) && pUIMapWnd)
 	{
 		pUIMapWnd->DrawHint();
 	}
@@ -891,7 +895,7 @@ void CUIPdaWnd::DrawHint()
 	{
 		// m_hint_wnd->Draw();
 	}
-	else if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::Ranking))
+	else if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::Ranking) && pUIRankingWnd)
 	{
 		pUIRankingWnd->DrawHint();
 	}
@@ -899,7 +903,7 @@ void CUIPdaWnd::DrawHint()
 	{
 		UIPdaContactsWnd->DrawHint();
 	}
-	else if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::RankingGlobal))
+	else if (PdaSectionId::Equals(m_sActiveSection, PdaSectionId::RankingGlobal) && pUIStalkersRankingWnd)
 	{
 		pUIStalkersRankingWnd->DrawHint();
 	}
@@ -1373,15 +1377,15 @@ void CUIPdaWnd::ReloadGamepadLegends()
 
 CUIPdaSpot* CUIPdaWnd::GetActiveUserSpotWnd()
 {
-	if (m_sActiveSection == "eptTasks")
+	if (m_sActiveSection == "eptTasks" && pUITaskWnd)
 	{
 		return pUITaskWnd->m_pMapWnd->m_UserSpotWnd;
 	}
-	else if (m_sActiveSection == "eptQuests")
+	else if (m_sActiveSection == "eptQuests" && pUIEventsWnd)
 	{
 		return pUIEventsWnd->m_UIMapWnd->m_UserSpotWnd;
 	}
-	else if (m_sActiveSection == "eptMap")
+	else if (m_sActiveSection == "eptMap" && pUIMapWnd)
 	{
 		return pUIMapWnd->m_UserSpotWnd;
 	}
