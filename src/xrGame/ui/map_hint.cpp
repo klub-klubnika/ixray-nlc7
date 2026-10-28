@@ -97,7 +97,7 @@ void CUIMapLocationHint::SetInfoStr(const char* text)
 	CUIStatic* S			= m_info["simple_text"];
 	S->TextItemControl()->SetTextST			(text);
 	S->AdjustHeightToText	();
-	float new_w				= S->GetWndPos().x + S->GetWndSize().x + 20.0f;
+	float new_w				= S->GetWndPos().x * 2.0f + S->GetWndSize().x;
 
 	float new_h				= std::max(64.0f, S->GetWndPos().y+S->GetWndSize().y+20.0f);
 	SetWndSize				(Fvector2().set(new_w, new_h));
