@@ -133,25 +133,27 @@ void CUIFrameLineWnd::DrawElements()
 	GetAbsoluteRect				(rect);
 	UI().ClientToScreenScaled	(rect.lt);
 	UI().ClientToScreenScaled	(rect.rb);
-	
+
+	PieceScale					= (UI().m_currentPointType != IUIRender::pttLIT) ? UI().ClientToScreenScaledY(1.0f) : 1.0f;
+
 	float back_len				= 0.0f;
-	u32 prim_count				= 6*2; //first&second 
+	u32 prim_count				= 6*2; //first&second
 	if(bHorizontal)
 	{
-		back_len				= rect.width()-m_tex_rect[flFirst].width()-m_tex_rect[flSecond].width();
+		back_len				= rect.width()-(m_tex_rect[flFirst].width()+m_tex_rect[flSecond].width())*PieceScale;
 		if(back_len<0.0f)
 			rect.x2				-= back_len;
 
 		if(back_len>0.0f)
-			prim_count				+= 6* iCeil(back_len / m_tex_rect[flBack].width());
+			prim_count				+= 6* iCeil(back_len / (m_tex_rect[flBack].width()*PieceScale));
 	}else
 	{
-		back_len				= rect.height()-m_tex_rect[flFirst].height()-m_tex_rect[flSecond].height();
+		back_len				= rect.height()-(m_tex_rect[flFirst].height()+m_tex_rect[flSecond].height())*PieceScale;
 		if(back_len<0)
 			rect.y2				-= back_len;
 
 		if(back_len>0.0f)
-			prim_count				+= 6* iCeil(back_len / m_tex_rect[flBack].height());
+			prim_count				+= 6* iCeil(back_len / (m_tex_rect[flBack].height()*PieceScale));
 	}
 
 	UIRender->StartPrimitive	(prim_count, IUIRender::ptTriList, UI().m_currentPointType);
@@ -181,51 +183,56 @@ bool  CUIFrameLineWnd::inc_pos(Frect& rect, int counter, int i, Fvector2& LTp, F
 		LTt				= m_tex_rect[i].lt;
 		RBt				= m_tex_rect[i].rb;
 
-		LTp				= rect.lt; 
+		LTp				= rect.lt;
 
-		RBp				= rect.lt; 
-		RBp.x			+= m_tex_rect[i].width();
-		RBp.y			+= m_tex_rect[i].height();
+		RBp				= rect.lt;
+		RBp.x			+= m_tex_rect[i].width()*PieceScale;
+		RBp.y			+= m_tex_rect[i].height()*PieceScale;
 	}else //i==flBack
 	{
-		if(	(bHorizontal && rect.lt.x + m_tex_rect[flSecond].width()+EPS_L >= rect.rb.x)|| 
-			(!bHorizontal && rect.lt.y + m_tex_rect[flSecond].height()+EPS_L >= rect.rb.y) )
+		const float SecondWidth		= m_tex_rect[flSecond].width()*PieceScale;
+		const float SecondHeight	= m_tex_rect[flSecond].height()*PieceScale;
+		const float BackWidth		= m_tex_rect[flBack].width()*PieceScale;
+		const float BackHeight		= m_tex_rect[flBack].height()*PieceScale;
+
+		if(	(bHorizontal && rect.lt.x + SecondWidth+EPS_L >= rect.rb.x)||
+			(!bHorizontal && rect.lt.y + SecondHeight+EPS_L >= rect.rb.y) )
 			return false;
 
 		LTt				= m_tex_rect[i].lt;
-		LTp				= rect.lt; 
+		LTp				= rect.lt;
 
-		bool b_draw_reminder = (bHorizontal) ?	(rect.lt.x+m_tex_rect[flBack].width() > rect.rb.x-m_tex_rect[flSecond].width()) :
-												(rect.lt.y+m_tex_rect[flBack].height() > rect.rb.y-m_tex_rect[flSecond].height());
+		bool b_draw_reminder = (bHorizontal) ?	(rect.lt.x+BackWidth > rect.rb.x-SecondWidth) :
+												(rect.lt.y+BackHeight > rect.rb.y-SecondHeight);
 		if(b_draw_reminder)
 		{ //draw reminder
-			float rem_len	= (bHorizontal) ?	rect.rb.x-m_tex_rect[flSecond].width()-rect.lt.x : 
-												rect.rb.y-m_tex_rect[flSecond].height()-rect.lt.y;
+			float rem_len	= (bHorizontal) ?	rect.rb.x-SecondWidth-rect.lt.x :
+												rect.rb.y-SecondHeight-rect.lt.y;
 
 			if(bHorizontal)
 			{
 				RBt.y			= m_tex_rect[i].rb.y;
-				RBt.x			= m_tex_rect[i].lt.x + rem_len;
+				RBt.x			= m_tex_rect[i].lt.x + rem_len/PieceScale;
 
-				RBp				= rect.lt; 
+				RBp				= rect.lt;
 				RBp.x			+= rem_len;
-				RBp.y			+= m_tex_rect[i].height();
+				RBp.y			+= BackHeight;
 			}else
 			{
-				RBt.y			= m_tex_rect[i].lt.y + rem_len;
+				RBt.y			= m_tex_rect[i].lt.y + rem_len/PieceScale;
 				RBt.x			= m_tex_rect[i].rb.x;
 
-				RBp				= rect.lt; 
-				RBp.x			+= m_tex_rect[i].width();
+				RBp				= rect.lt;
+				RBp.x			+= BackWidth;
 				RBp.y			+= rem_len;
 			}
 		}else
 		{ //draw full element
 			RBt				= m_tex_rect[i].rb;
 
-			RBp				= rect.lt; 
-			RBp.x			+= m_tex_rect[i].width();
-			RBp.y			+= m_tex_rect[i].height();
+			RBp				= rect.lt;
+			RBp.x			+= BackWidth;
+			RBp.y			+= BackHeight;
 		}
 	}
 

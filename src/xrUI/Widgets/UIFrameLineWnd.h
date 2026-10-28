@@ -51,5 +51,6 @@ protected:
 
 	ui_shader			m_shader;
 	Frect				m_tex_rect			[flMax];
+	float				PieceScale = 1.0f;
 	shared_str			dbg_tex_name;
 };
