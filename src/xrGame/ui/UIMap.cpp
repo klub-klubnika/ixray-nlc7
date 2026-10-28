@@ -126,7 +126,7 @@ void rotation_(float x, float y, const float angle, float& x_, float& y_, float 
 Fvector2 CUICustomMap::ConvertLocalToReal(const Fvector2& src, Frect const& bound_rect)
 {
 	Fvector2 res; 
-	res.x = bound_rect.lt.x + src.x/GetCurrentZoom().x;
+	res.x = bound_rect.lt.x + src.x/GetCurrentZoom().y;
 	res.y = bound_rect.height() + bound_rect.lt.y - src.y/GetCurrentZoom().x;
 
 	return res;
@@ -158,7 +158,7 @@ Fvector2 CUICustomMap::ConvertRealToLocal  (const Fvector2& src, bool for_drawin
 Fvector2 CUICustomMap::ConvertRealToLocalNoTransform  (const Fvector2& src, Frect const& bound_rect)// meters->pixels (relatively own left-top pos)
 {
 	Fvector2 res;
-	res.x = (src.x-bound_rect.lt.x) * GetCurrentZoom().x;
+	res.x = (src.x-bound_rect.lt.x) * GetCurrentZoom().y;
 	res.y = (bound_rect.height()-(src.y-bound_rect.lt.y)) * GetCurrentZoom().x;
 
 	return res;
