@@ -187,3 +187,16 @@ void CUICursor::SetUICursorPosition(Fvector2 pos)
 		vPos = pos;
 	}
 }
+
+void CUICursor::WarpMouseToCursor()
+{
+	if (psDeviceFlags.test(rsFullscreen) || CImGuiManager::Instance().IsCapturingInputs())
+	{
+		return;
+	}
+
+	const float X = vPos.x * (float)Device.TargetWidth / UI_BASE_WIDTH;
+	const float Y = vPos.y * (float)Device.TargetHeight / UI_BASE_HEIGHT;
+	SDL_WarpMouseInWindow(g_AppInfo.Window, X, Y);
+	vPrevPos = vPos;
+}

@@ -101,6 +101,7 @@ Fvector2 GetCursorPosition_script()
 void SetCursorPosition_script(Fvector2& pos)
 {
 	GetUICursor().SetUICursorPosition(pos);
+	GetUICursor().WarpMouseToCursor();
 }
 
 
