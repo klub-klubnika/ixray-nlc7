@@ -167,6 +167,27 @@ protected:
 	void						highlight_power_manager_for_power_cell(PIItem item, CUIDragDropListEx* ddlist);
 
 	void						InitInventoryContents		(CUIDragDropListEx* pBagList);
+public:
+	virtual void				ShowScriptButton			(const char* text, const char* func) { ScriptButtonFunc = func; }
+	virtual void				HideScriptButton			() { ScriptButtonFunc = nullptr; }
+	void						SetActorFilter				(const char* func);
+	void						SetDropHandler				(const char* func);
+	void						ResetScriptHooks			();
+	void						OnScriptButtonClicked		();
+	bool						IsActorItemHidden			(PIItem Item);
+	bool						HandleScriptDropToBox		(PIItem Item);
+	void						SetItemOnItemHandler		(const char* func);
+	bool						HandleScriptItemOnItem		(PIItem Item, PIItem Target);
+	void						SetTakeHandler				(const char* func);
+	bool						HandleScriptTakeFromBox		(PIItem Item);
+protected:
+	shared_str					ItemOnItemFunc;
+	shared_str					TakeHandlerFunc;
+	void						AddEquippedToBag			(CUIDragDropListEx* BagList);
+	void						RefillActorBag				(CUIDragDropListEx* BagList);
+	shared_str					ScriptButtonFunc;
+	shared_str					ActorFilterFunc;
+	shared_str					DropHandlerFunc;
 	void						InitCellForSlot				(u16 slot_idx);
 	void						UpdateDeadBodyBagList		();
 	bool						RemoveItemFromList			(CUIDragDropListEx* lst, PIItem pItem);

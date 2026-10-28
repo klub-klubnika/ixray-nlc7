@@ -44,6 +44,8 @@ public:
 	virtual CUIDragDropListEx*	GetActorList				() override { return m_pUIOurBagList; }
 	virtual CUIDragDropListEx*	GetPartnerList				() override { return m_pUIOthersBagList; }
 	virtual CInventoryBox*		GetInvBox					() override { return m_pInventoryBox; }
+	virtual void				ShowScriptButton			(const char* text, const char* func) override;
+	virtual void				HideScriptButton			() override;
 protected:
 	CInventoryOwner*			m_pOurObject;
 
@@ -69,6 +71,7 @@ protected:
 	CUICharacterInfo*			m_pUICharacterInfoRight;
 	CUI3tButton*				m_pUITakeAll;
 	CUI3tButton*				m_pUIPutAll;
+	CUI3tButton*				ScriptButton = nullptr;
 
 	void						UpdateLists					();
 

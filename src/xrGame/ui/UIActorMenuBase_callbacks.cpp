@@ -36,7 +36,15 @@ bool CUIActorMenuBase::OnItemDrop(CUICellItem* itm)
 		Msg("incorrect action [%d]->[%d]",t_old, t_new);
 		return true;
 	}
-	
+
+	if (ItemOnItemFunc.size() && m_lastFocusRecivedItem != nullptr && m_lastFocusLostItem_id != ALife::INVALID_OBJECT_ID && m_lastFocusRecivedItem->object_id() != m_lastFocusLostItem_id)
+	{
+		if (HandleScriptItemOnItem(CurrentIItem(), m_lastFocusRecivedItem))
+		{
+			return true;
+		}
+	}
+
 	if (old_owner == new_owner)
 	{
 		if (!is_on_item_dropped_callback_processed)

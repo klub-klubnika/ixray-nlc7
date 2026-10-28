@@ -148,6 +148,14 @@ void CUICarBodyWnd::Init()
 		AttachChild(m_pUIPutAll);
 		xml_init.Init3tButton(uiXml, "put_all_btn", 0, m_pUIPutAll);
 	}
+
+	if (uiXml.NavigateToNode("script_btn"))
+	{
+		ScriptButton = new CUI3tButton(); ScriptButton->SetAutoDelete(true);
+		AttachChild(ScriptButton);
+		xml_init.Init3tButton(uiXml, "script_btn", 0, ScriptButton);
+		ScriptButton->Show(false);
+	}
 	
 	CUIXml uiDropAmountXml;
 	if (uiDropAmountXml.Load(CONFIG_PATH, UI_PATH, "custom_drop_amount.xml"))
@@ -259,6 +267,10 @@ void CUICarBodyWnd::SendMessage(CUIWindow *pWnd, s16 msg, void *pData)
 		{
 			PutAllToPartner(this, nullptr);
 		}
+		else if (ScriptButton && ScriptButton == pWnd)
+		{
+			OnScriptButtonClicked();
+		}
 	}
 	else if(pWnd == m_UIPropertiesBox &&	msg == PROPERTY_CLICKED)
 	{
@@ -308,11 +320,34 @@ void CUICarBodyWnd::Show(bool status)
 	else
 	{
 		InventoryUtilities::SendInfoToActor("ui_car_body_hide");
+		ResetScriptHooks();
 		m_pUIOurBagList->ClearAll(true);
 		m_pUIOthersBagList->ClearAll(true);
 		PlaySnd(eSndClose);
 		if (m_pInventoryBox)
 			m_pInventoryBox->set_in_use(false);
+	}
+}
+
+void CUICarBodyWnd::ShowScriptButton(const char* text, const char* func)
+{
+	inherited::ShowScriptButton(text, func);
+	if (!ScriptButton)
+	{
+		return;
+	}
+
+	ScriptButton->TextItemControl()->SetTextST(text);
+	ScriptButton->Enable(true);
+	ScriptButton->Show(true);
+}
+
+void CUICarBodyWnd::HideScriptButton()
+{
+	inherited::HideScriptButton();
+	if (ScriptButton)
+	{
+		ScriptButton->Show(false);
 	}
 }
 

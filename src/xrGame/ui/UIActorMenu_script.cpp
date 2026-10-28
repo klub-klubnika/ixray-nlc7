@@ -264,6 +264,91 @@ void CUIActorMenu::PerformDisassemble()
 	item->object().DestroyObject();
 }
 
+void CUIActorMenu::ShowScriptButton(const char* text, const char* func)
+{
+	inherited::ShowScriptButton(text, func);
+	if (!ScriptButton || !m_takeall_button)
+	{
+		return;
+	}
+
+	ScriptButton->TextItemControl()->SetTextST(text);
+	ScriptButton->Enable(true);
+	ScriptButton->Show(true);
+	m_takeall_button->Show(false);
+	if (m_putall_button)
+	{
+		m_putall_button->Show(false);
+	}
+}
+
+void CUIActorMenu::HideScriptButton()
+{
+	inherited::HideScriptButton();
+	if (!ScriptButton)
+	{
+		return;
+	}
+
+	ScriptButton->Show(false);
+}
+
+void CUIActorMenu::OnBtnScriptClicked(CUIWindow* w, void* d)
+{
+	OnScriptButtonClicked();
+}
+
+namespace
+{
+void BoxShowScriptButton_script(const char* text, const char* func)
+{
+	if (CUIActorMenuBase* Menu = CurrentGameUI() ? CurrentGameUI()->GetCarbodyMenu() : nullptr)
+	{
+		Menu->ShowScriptButton(text, func);
+	}
+}
+
+void BoxHideScriptButton_script()
+{
+	if (CUIActorMenuBase* Menu = CurrentGameUI() ? CurrentGameUI()->GetCarbodyMenu() : nullptr)
+	{
+		Menu->HideScriptButton();
+	}
+}
+
+void BoxSetActorFilter_script(const char* func)
+{
+	if (CUIActorMenuBase* Menu = CurrentGameUI() ? CurrentGameUI()->GetCarbodyMenu() : nullptr)
+	{
+		Menu->SetActorFilter(func);
+	}
+}
+
+void BoxSetDropHandler_script(const char* func)
+{
+	if (CUIActorMenuBase* Menu = CurrentGameUI() ? CurrentGameUI()->GetCarbodyMenu() : nullptr)
+	{
+		Menu->SetDropHandler(func);
+	}
+}
+
+void BoxSetItemOnItemHandler_script(const char* func)
+{
+	if (CUIActorMenuBase* Menu = CurrentGameUI() ? CurrentGameUI()->GetCarbodyMenu() : nullptr)
+	{
+		Menu->SetItemOnItemHandler(func);
+	}
+}
+
+void BoxSetTakeHandler_script(const char* func)
+{
+	if (CUIActorMenuBase* Menu = CurrentGameUI() ? CurrentGameUI()->GetCarbodyMenu() : nullptr)
+	{
+		Menu->SetTakeHandler(func);
+	}
+}
+}
+
 void CUIActorMenu::CurModeToScript()
 {
 	int mode = (int)m_currMenuMode;
@@ -494,6 +579,12 @@ void CUIActorMenu::script_register(lua_State *L)
 		def("get_pda_menu", &GetPDAMenu),
 		def("get_actor_menu", &GetActorMenu),
 		def("get_menu_mode", &GrabMenuMode),
+		def("box_show_script_button", &BoxShowScriptButton_script),
+		def("box_hide_script_button", &BoxHideScriptButton_script),
+		def("box_set_actor_filter", &BoxSetActorFilter_script),
+		def("box_set_drop_handler", &BoxSetDropHandler_script),
+		def("box_set_item_on_item_handler", &BoxSetItemOnItemHandler_script),
+		def("box_set_take_handler", &BoxSetTakeHandler_script),
 		def("get_maingame",&GetMainGameMenu)
 	];
 }

@@ -265,6 +265,10 @@ void CUIActorMenu::Construct()
 		m_trade_sell_button	= UIHelper::Create3tButton(uiXml, "trade_sell_button", this);
 
 	m_takeall_button	= UIHelper::Create3tButton(uiXml, "takeall_button", this);
+	ScriptButton		= UIHelper::Create3tButton(uiXml, "takeall_button", this);
+	ScriptButton->SetWindowName("script_button");
+	ScriptButton->m_hint_text = nullptr;
+	ScriptButton->Show(false);
 
 	if (uiXml.NavigateToNode("putall_button", 0))
 	{
@@ -516,6 +520,7 @@ void CUIActorMenu::InitCallbacks()
 	if (m_trade_sell_button)
 		Register						(m_trade_sell_button);
 	Register						(m_takeall_button);
+	Register						(ScriptButton);
 
 	if (m_putall_button != nullptr)
 	{
@@ -541,6 +546,7 @@ void CUIActorMenu::InitCallbacks()
 	if (m_trade_sell_button)
 		AddCallback(m_trade_sell_button,BUTTON_CLICKED,   CUIWndCallback::void_function(this, &CUIActorMenu::OnBtnPerformTradeSell));
 	AddCallback(m_takeall_button,  BUTTON_CLICKED,   CUIWndCallback::void_function(this, &CUIActorMenu::TakeAllFromPartner));
+	AddCallback(ScriptButton,      BUTTON_CLICKED,   CUIWndCallback::void_function(this, &CUIActorMenu::OnBtnScriptClicked));
 
 	if (m_putall_button != nullptr)
 	{

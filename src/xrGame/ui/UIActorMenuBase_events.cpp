@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "UIActorMenuBase.h"
 #include "../InventoryOwner.h"
+#include "../InventoryBox.h"
 #include "../Level.h"
 #include "UIDragDropReferenceList.h"
 #include "UICellCustomItems.h"
@@ -1017,12 +1018,17 @@ bool CUIActorMenuBase::ToSlot(CUICellItem* itm, bool force_place, u16 slot_id)
 bool CUIActorMenuBase::ToBag(CUICellItem* itm, bool b_use_cursor_pos)
 {
 	// FFx0001
-	if (!IsAllowTakeFromInvBox(itm)) 
+	if (!IsAllowTakeFromInvBox(itm))
 	{
 		return false;
 	}
 
 	PIItem	iitem						= (PIItem)itm->m_pData;
+
+	if (GetInvBox() && iitem->parent_id() == GetInvBox()->cast_game_object()->ID() && HandleScriptTakeFromBox(iitem))
+	{
+		return false;
+	}
 
 	bool b_own_item						= (iitem->parent_id()==GetInventoryOwner()->object_id());
 
@@ -1225,6 +1231,31 @@ void CUIActorMenuBase::TakeAllCurrentItem(u32 item_amount)
 	u32 const toTake = (item_amount > totalCount) ? totalCount : item_amount;
 	u32 const childrenToTake = (toTake < childCount) ? toTake : childCount;
 
+	if (GetInvBox() && TakeHandlerFunc.size())
+	{
+		xr_vector<PIItem> Items;
+		for (u32 i = 0; i < childrenToTake; ++i)
+		{
+			Items.push_back((PIItem)CurrentItem()->Child(i)->m_pData);
+		}
+		if (toTake > childCount)
+		{
+			Items.push_back(CurrentIItem());
+		}
+
+		for (PIItem Item : Items)
+		{
+			if (HandleScriptTakeFromBox(Item) || !GetInventoryOwner()->inventory().CanTakeItem(Item))
+			{
+				continue;
+			}
+			move_item_from_to(Item->parent_id(), GetInventoryOwner()->object_id(), Item->object_id());
+		}
+
+		SetCurrentItem(nullptr);
+		return;
+	}
+
 	for (u32 i = 0; i < childrenToTake; ++i)
 	{
 		CUICellItem* child_itm = CurrentItem()->Child(0);
@@ -1278,10 +1309,14 @@ void CUIActorMenuBase::MoveAllCurrentItem(u32 item_amount)
 	{
 		CUICellItem* child_itm = CurrentItem()->Child(i);
 		PIItem child_iitm = (PIItem)child_itm->m_pData;
+		if (GetInvBox() && HandleScriptDropToBox(child_iitm))
+		{
+			continue;
+		}
 		move_item_from_to(CurrentIItem()->parent_id(), ownerID, child_iitm->object_id());
 	}
 	// Move parent only when moving entire stack (toMove > childCount)
-	if (toMove > childCount)
+	if (toMove > childCount && !(GetInvBox() && HandleScriptDropToBox(CurrentIItem())))
 		move_item_from_to(CurrentIItem()->parent_id(), ownerID, CurrentIItem()->object_id());
 }
 
@@ -1475,10 +1510,158 @@ void CUIActorMenuBase::ToPartnerTradeBagAll(u32 item_amount)
 	UpdatePrices();
 }
 
+void CUIActorMenuBase::SetActorFilter(const char* func)
+{
+	ActorFilterFunc = (func && func[0]) ? func : nullptr;
+	CUIDragDropListEx* BagList = GetActorList();
+	if (!ActorFilterFunc.size() || !BagList)
+	{
+		return;
+	}
+
+	RefillActorBag(BagList);
+}
+
+void CUIActorMenuBase::AddEquippedToBag(CUIDragDropListEx* BagList)
+{
+	if (!ActorFilterFunc.size() || !BagList || !GetInventoryOwner())
+	{
+		return;
+	}
+
+	for (u16 Slot = 1; Slot <= LAST_SLOT; ++Slot)
+	{
+		if (m_pInvList[Slot])
+		{
+			continue;
+		}
+
+		PIItem Item = GetInventoryOwner()->inventory().ItemFromSlot(Slot);
+		if (!Item || IsActorItemHidden(Item))
+		{
+			continue;
+		}
+
+		bool Present = false;
+		const u32 Count = BagList->ItemsCount();
+		for (u32 i = 0; i < Count && !Present; ++i)
+		{
+			CUICellItem* Cell = BagList->GetItemIdx(i);
+			Present = Cell && (PIItem)Cell->m_pData == Item;
+		}
+
+		if (!Present)
+		{
+			BagList->SetItem(create_cell_item(Item));
+		}
+	}
+}
+
+void CUIActorMenuBase::SetDropHandler(const char* func)
+{
+	DropHandlerFunc = (func && func[0]) ? func : nullptr;
+}
+
+void CUIActorMenuBase::ResetScriptHooks()
+{
+	ActorFilterFunc = nullptr;
+	DropHandlerFunc = nullptr;
+	ItemOnItemFunc = nullptr;
+	TakeHandlerFunc = nullptr;
+	HideScriptButton();
+}
+
+void CUIActorMenuBase::SetTakeHandler(const char* func)
+{
+	TakeHandlerFunc = (func && func[0]) ? func : nullptr;
+}
+
+bool CUIActorMenuBase::HandleScriptTakeFromBox(PIItem Item)
+{
+	if (!TakeHandlerFunc.size() || !Item || !GetInvBox())
+	{
+		return false;
+	}
+
+	luabind::functor<bool> Func;
+	if (!ai().script_engine().functor(TakeHandlerFunc.c_str(), Func))
+	{
+		return false;
+	}
+	return Func(Item->object().lua_game_object(), GetInvBox()->cast_game_object()->lua_game_object());
+}
+
+void CUIActorMenuBase::SetItemOnItemHandler(const char* func)
+{
+	ItemOnItemFunc = (func && func[0]) ? func : nullptr;
+}
+
+bool CUIActorMenuBase::HandleScriptItemOnItem(PIItem Item, PIItem Target)
+{
+	if (!ItemOnItemFunc.size() || !Item || !Target || Item == Target)
+	{
+		return false;
+	}
+
+	luabind::functor<bool> Func;
+	if (!ai().script_engine().functor(ItemOnItemFunc.c_str(), Func))
+	{
+		return false;
+	}
+	return Func(Item->object().lua_game_object(), Target->object().lua_game_object());
+}
+
+void CUIActorMenuBase::OnScriptButtonClicked()
+{
+	if (!ScriptButtonFunc.size())
+	{
+		return;
+	}
+
+	luabind::functor<void> Func;
+	if (ai().script_engine().functor(ScriptButtonFunc.c_str(), Func))
+	{
+		Func();
+	}
+}
+
+bool CUIActorMenuBase::IsActorItemHidden(PIItem Item)
+{
+	if (!ActorFilterFunc.size() || !Item)
+	{
+		return false;
+	}
+
+	luabind::functor<bool> Func;
+	if (!ai().script_engine().functor(ActorFilterFunc.c_str(), Func))
+	{
+		return false;
+	}
+	return !Func(Item->object().lua_game_object());
+}
+
+bool CUIActorMenuBase::HandleScriptDropToBox(PIItem Item)
+{
+	if (!DropHandlerFunc.size() || !Item || !GetInvBox())
+	{
+		return false;
+	}
+
+	luabind::functor<bool> Func;
+	if (!ai().script_engine().functor(DropHandlerFunc.c_str(), Func))
+	{
+		return false;
+	}
+	return Func(Item->object().lua_game_object(), GetInvBox()->cast_game_object()->lua_game_object());
+}
+
 bool CUIActorMenuBase::ToDeadBodyBag(CUICellItem* itm, bool b_use_cursor_pos)
 {
 	PIItem quest_item = (PIItem)itm->m_pData;
 	if (quest_item->IsQuestItem())
+		return false;
+
+	if (GetInvBox() && HandleScriptDropToBox(quest_item))
 		return false;
 
 	if ( GetPartner() )

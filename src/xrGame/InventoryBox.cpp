@@ -56,7 +56,7 @@ void CInventoryBox::OnEvent(NET_Packet& P, u16 type)
 
 		itm->H_SetParent(nullptr, dont_create_shell);
 
-		if (!IsGameTypeSingle() && CurrentGameUI())
+		if ((!IsGameTypeSingle() || just_before_destroy) && CurrentGameUI())
 		{
 			// DO NOT remove menu mode check, since CoP inventory is not always used for deadbody, unlike SoC one
 			if (CurrentGameUI()->GetCarbodyMenu() && CurrentGameUI()->GetCarbodyMenu()->GetMenuMode() == mmDeadBodySearch)

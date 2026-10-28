@@ -80,6 +80,7 @@ void CUIActorMenu::DeInitDeadBodySearchMode()
 	m_PartnerBottomInfo->Show		(false);
 	m_PartnerWeight->Show			(false);
 	m_takeall_button->Show			(false);
+	ResetScriptHooks				();
 
 	if (m_putall_button != nullptr)
 	{

@@ -909,6 +909,32 @@ void CUIActorMenuBase::OnDragDropListContentReset(CUIDragDropListEx* list)
 	InvalidateTransientCellRefsForList(list);
 }
 
+void CUIActorMenuBase::RefillActorBag(CUIDragDropListEx* BagList)
+{
+	if (!BagList || !GetInventoryOwner())
+	{
+		return;
+	}
+
+	BagList->ClearAll(true);
+	SetCurrentItem(nullptr);
+
+	TIItemContainer RuckList = GetInventoryOwner()->inventory().m_ruck;
+	std::sort(RuckList.begin(), RuckList.end(), InventoryUtilities::GreaterRoomInRuck);
+	for (PIItem Item : RuckList)
+	{
+		if (smart_cast<CMPPlayersBag*>(&Item->object()))
+			continue;
+
+		if (!Item->VisibleInInventory() || IsActorItemHidden(Item))
+			continue;
+
+		BagList->SetItem(create_cell_item(Item));
+	}
+
+	AddEquippedToBag(BagList);
+}
+
 void CUIActorMenuBase::InitInventoryContents(CUIDragDropListEx* pBagList)
 {
 	ClearAllLists				();
@@ -974,6 +1000,9 @@ void CUIActorMenuBase::InitInventoryContents(CUIDragDropListEx* pBagList)
 		if (!(*itb)->VisibleInInventory())
 			continue;
 
+		if (IsActorItemHidden(*itb))
+			continue;
+
 		CUICellItem* itm = create_cell_item( *itb );
 		curr_list->SetItem(itm);
 		if (GetPartner() || GetInvBox())
@@ -981,6 +1010,8 @@ void CUIActorMenuBase::InitInventoryContents(CUIDragDropListEx* pBagList)
 			ColorizeItem(itm, m_currMenuMode == mmTrade ? !CanMoveToPartner(*itb) : false);
 		}
 	}
+
+	AddEquippedToBag(pBagList);
 
 	if (m_pQuickSlot)
 		m_pQuickSlot->ReloadReferences(GetInventoryOwner());

@@ -113,6 +113,7 @@ protected:
 	CUI3tButton*				m_takeall_button = nullptr;
 	CUI3tButton*				m_putall_button = nullptr;
 	CUI3tButton*				m_exit_button = nullptr;
+	CUI3tButton*				ScriptButton = nullptr;
 	CUIStatic*					m_clock_value = nullptr;
 
 	u32							m_last_time;
@@ -219,6 +220,9 @@ public:
 	void						OnBtnPerformTradeBuy				(CUIWindow* w, void* d);
 	void						OnBtnPerformTradeSell				(CUIWindow* w, void* d);
 	void						OnBtnExitClicked					(CUIWindow* w, void* d);
+	void						OnBtnScriptClicked					(CUIWindow* w, void* d);
+	virtual void				ShowScriptButton					(const char* text, const char* func) override;
+	virtual void				HideScriptButton					() override;
 
 	virtual void				HideDialog							() override;
 

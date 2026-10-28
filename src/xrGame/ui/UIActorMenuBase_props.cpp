@@ -761,7 +761,7 @@ void CUIActorMenuBase::ProcessPropertiesBoxClicked(CUIWindow* w, void* d)
 					{
 						m_pItemDropAmountWnd->ShowDropAmount(cell_item->ChildsCount(), CUIItemDropAmountWnd::eModeMove, item, cell_item);
 					}
-					else if (isAllowPlace) 
+					else if (isAllowPlace && !(GetInvBox() && HandleScriptDropToBox(item)))
 					{
 						move_item_from_to(item->parent_id(), ownerID, item->object_id());
 					}
