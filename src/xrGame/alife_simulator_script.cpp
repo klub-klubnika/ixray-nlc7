@@ -386,8 +386,15 @@ void CALifeSimulator__release2(CALifeSimulator *self, CSE_Abstract *object)
 
 const char* get_level_name							(const CALifeSimulator *self_, int level_id)
 {
-	const char*								result_ = *ai().game_graph().header().level((GameGraph::_LEVEL_ID)level_id).name();
-	return								(result_);
+	const auto& Levels = ai().game_graph().header().levels();
+	const auto It = Levels.find((GameGraph::_LEVEL_ID)level_id);
+	if (It == Levels.end())
+	{
+		Msg("! [%s] level id [%d] is not in the game graph", __FUNCTION__, level_id);
+		return "";
+	}
+
+	return *It->second.name();
 }
 
 CSE_ALifeCreatureActor *get_actor				(const CALifeSimulator *self_)

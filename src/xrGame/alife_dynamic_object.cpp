@@ -179,11 +179,19 @@ void CSE_ALifeDynamicObject::add_offline(const xr_vector<ALife::_OBJECT_ID>& sav
 
 bool CSE_ALifeDynamicObject::synchronize_location	()
 {
-	if (!ai().level_graph().valid_vertex_position(o_Position) || ai().level_graph().inside(ai().level_graph().vertex(m_tNodeID),o_Position))
+	if (!ai().level_graph().valid_vertex_position(o_Position))
+		return					(true);
+
+	bool const ValidNode		= ai().level_graph().valid_vertex_id(m_tNodeID);
+	if (!ValidNode)
+	{
+		Msg("! [%s] object [%s] id [%u] has invalid level vertex id [%u] (vertex count [%u]), pos [%.3f %.3f %.3f]", __FUNCTION__, name_replace(), ID, m_tNodeID, ai().level_graph().header().vertex_count(), VPUSH(o_Position));
+	}
+	else if (ai().level_graph().inside(ai().level_graph().vertex(m_tNodeID),o_Position))
 		return					(true);
 
 	u32 const new_vertex_id		= ai().level_graph().vertex(m_tNodeID,o_Position);
-	if (!m_bOnline && !ai().level_graph().inside(new_vertex_id, o_Position))
+	if (ValidNode && !m_bOnline && !ai().level_graph().inside(new_vertex_id, o_Position))
 		return					(true);
 
 	m_tNodeID					= new_vertex_id;

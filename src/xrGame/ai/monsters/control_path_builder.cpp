@@ -250,6 +250,13 @@ bool CControlPathBuilder::is_moving_on_path()
 
 bool CControlPathBuilder::get_node_in_radius(u32 src_node, float min_radius, float max_radius, u32 attempts, u32 &dest_node)
 {
+	if (!ai().level_graph().valid_vertex_id(src_node))
+	{
+		Msg("! [%s] monster [%s] invalid source level vertex id [%u] (vertex count [%u])", __FUNCTION__, *(inherited_com::m_object->cName()), src_node, ai().level_graph().header().vertex_count());
+		dest_node = u32(-1);
+		return false;
+	}
+
 	Fvector vertex_position = ai().level_graph().vertex_position(src_node);
 
 	for (u32 i=0; i<attempts; i++) {

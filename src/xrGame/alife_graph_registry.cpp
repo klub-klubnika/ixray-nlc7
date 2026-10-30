@@ -225,7 +225,13 @@ void CALifeGraphRegistry::add	(CSE_ALifeDynamicObject *object, GameGraph::_GRAPH
 
 void CALifeGraphRegistry::remove	(CSE_ALifeDynamicObject *object, GameGraph::_GRAPH_ID game_vertex_id, bool update)
 {
-	if (object->used_ai_locations() /**&& object->interactive()/**/) {
+	if (!ai().game_graph().valid_vertex_id(game_vertex_id))
+	{
+		Msg("! [%s] object [%s] id [%u] has invalid game vertex id [%u]", __FUNCTION__, object->name_replace(), object->ID, u32(game_vertex_id));
+		return;
+	}
+
+	if (object->used_ai_locations()/**&& object->interactive()/**/) {
 	#ifdef DEBUG
 		if (psAI_Flags.test(aiALife)) {
 			Msg					("[LSS] removing object [%s][%d] from graph point %d",object->name_replace(),object->ID,game_vertex_id);
