@@ -155,6 +155,36 @@ void CLevel::g_sv_Spawn		(CSE_Abstract* E)
 	if	(GameID()	== eGameIDSingle)		psNET_Flags.set	(NETFLAG_MINIMIZEUPDATES,true);
 	else								psNET_Flags.set	(NETFLAG_MINIMIZEUPDATES,false);
 
+	if (const CSE_ALifeObjectPhysic* Physic = smart_cast<const CSE_ALifeObjectPhysic*>(E))
+	{
+		const char* VisualName = Physic->get_visual();
+		if ((!VisualName || !VisualName[0]) && pSettings->line_exist(E->s_name, "visual"))
+		{
+			VisualName = pSettings->r_string(E->s_name, "visual");
+		}
+
+		bool HasVisual = VisualName && VisualName[0];
+		if (HasVisual)
+		{
+			string_path FileName;
+			xr_strcpy(FileName, VisualName);
+			if (!strext(FileName))
+			{
+				xr_strcat(FileName, ".ogf");
+			}
+
+			string_path FullPath;
+			HasVisual = FS.exist(VisualName) || FS.exist(FullPath, "$level$", FileName) || FS.exist(FullPath, _game_meshes_, FileName);
+		}
+
+		if (!HasVisual)
+		{
+			Msg("! [%s] physic object [%s] section [%s] id [%u] has no model [%s], spawn skipped, pos [%.3f %.3f %.3f]", __FUNCTION__, E->name_replace(), E->s_name.c_str(), u32(E->ID), VisualName ? VisualName : "", VPUSH(E->o_Position));
+			xrLogger::FlushLog();
+			return;
+		}
+	}
+
 	// Client spawn
 //	T.Start		();
 	CObject*	O		= Objects.Create	(*E->s_name);
