@@ -81,6 +81,3 @@ cmake-build*/
 linux/sal.h
 *.TMP
 util/wrap_config.json
-
-# graphify
-graphify-out/
